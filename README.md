@@ -8,7 +8,6 @@ A modern algorithmic trading dashboard showcasing portfolio performance visualiz
 - **Real-time Performance Tracking**: Monitor 12 trading strategies across 4 cryptocurrency pairs (BTC, ETH, SOL, LTC)
 - **Interactive Charts**: Zoomable Plotly.js visualizations with multiple time range selections
 - **Top Performers Section**: Identify gainers, losers, and trending strategies at a glance
-- **Responsive Design**: Seamless experience across desktop and mobile devices
 - **Theme Customization**: Light/dark modes with multiple accent colors
 
 ## Tech Stack
