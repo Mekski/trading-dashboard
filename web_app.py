@@ -28,27 +28,43 @@ app = Flask(__name__)
 CORS(app)
 Compress(app)
 
-# Configure logging with rotation
-from logging.handlers import RotatingFileHandler
+# Configure logging - detect if running on Vercel (read-only filesystem)
+import sys
 
-# Create rotating file handler for web app
-web_rotating_handler = RotatingFileHandler(
-    'web_app.log',
-    maxBytes=10*1024*1024,  # 10MB
-    backupCount=5,  # Keep 5 old versions
-    encoding='utf-8'
-)
-web_rotating_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+# Check if we're in a serverless environment (Vercel)
+is_serverless = os.environ.get('VERCEL') or os.environ.get('AWS_LAMBDA_FUNCTION_NAME') or '/var/task' in sys.prefix
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        web_rotating_handler,
-        logging.StreamHandler()
-    ]
-)
+if not is_serverless:
+    # Only use file logging in local development
+    from logging.handlers import RotatingFileHandler
+
+    # Create rotating file handler for web app
+    web_rotating_handler = RotatingFileHandler(
+        'web_app.log',
+        maxBytes=10*1024*1024,  # 10MB
+        backupCount=5,  # Keep 5 old versions
+        encoding='utf-8'
+    )
+    web_rotating_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+
+    # Configure logging with file handler
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        handlers=[
+            web_rotating_handler,
+            logging.StreamHandler()
+        ]
+    )
+else:
+    # In serverless, only use console logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.StreamHandler()
+        ]
+    )
 logger = logging.getLogger(__name__)
 
 # OKX integration disabled for now
