@@ -20,7 +20,7 @@ A modern algorithmic trading dashboard showcasing portfolio performance visualiz
 
 ## Live Demo
 
-Visit the deployed version on Vercel: [Coming Soon]
+Visit the deployed version on Vercel: (https://trading-dashboard-nu-eosin.vercel.app/)
 
 ## Local Development
 
