@@ -1,0 +1,2607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Symbol Detail - Modern View</title>
+    
+    <!-- Modern fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.0.0/fonts/remixicon.css" rel="stylesheet">
+    
+    <!-- Chart library -->
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #818cf8;
+            --secondary: #22d3ee;
+            --secondary-dark: #0891b2;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --dark: #0f172a;
+            --dark-lighter: #1e293b;
+            --light: #f8fafc;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --card-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            --hover-transform: translateY(-3px) scale(1.01);
+            --animation-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Light mode variables */
+        [data-theme="light"] {
+            --dark: #ffffff;
+            --dark-lighter: #f8fafc;
+            --glass-bg: rgba(255, 255, 255, 0.95);
+            --glass-border: rgba(0, 0, 0, 0.08);
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --card-shadow: 0 2px 4px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.04);
+            --bg-primary: #f1f5f9;
+            --bg-secondary: #ffffff;
+            --bg-card: rgba(255, 255, 255, 0.98);
+        }
+
+        /* Custom accent colors */
+        [data-accent="purple"] {
+            --primary: #9333ea;
+            --primary-dark: #7c3aed;
+            --primary-light: #a855f7;
+            --secondary: #ec4899;
+        }
+
+        [data-accent="green"] {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --primary-light: #34d399;
+            --secondary: #14b8a6;
+        }
+
+        [data-accent="orange"] {
+            --primary: #f97316;
+            --primary-dark: #ea580c;
+            --primary-light: #fb923c;
+            --secondary: #f59e0b;
+        }
+
+        [data-accent="pink"] {
+            --primary: #ec4899;
+            --primary-dark: #db2777;
+            --primary-light: #f472b6;
+            --secondary: #f43f5e;
+        }
+
+        [data-accent="blue"] {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --primary-light: #60a5fa;
+            --secondary: #06b6d4;
+        }
+
+        [data-accent="red"] {
+            --primary: #ef4444;
+            --primary-dark: #dc2626;
+            --primary-light: #f87171;
+            --secondary: #f97316;
+        }
+
+        [data-accent="teal"] {
+            --primary: #14b8a6;
+            --primary-dark: #0d9488;
+            --primary-light: #2dd4bf;
+            --secondary: #06b6d4;
+        }
+
+        [data-accent="amber"] {
+            --primary: #f59e0b;
+            --primary-dark: #d97706;
+            --primary-light: #fbbf24;
+            --secondary: #f97316;
+        }
+
+        [data-accent="indigo"] {
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --primary-light: #6366f1;
+            --secondary: #7c3aed;
+        }
+
+        [data-accent="rose"] {
+            --primary: #f43f5e;
+            --primary-dark: #e11d48;
+            --primary-light: #fb7185;
+            --secondary: #ec4899;
+        }
+
+        [data-accent="emerald"] {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --primary-light: #34d399;
+            --secondary: #06b6d4;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            color: var(--text-primary);
+            overflow-x: hidden;
+            position: relative;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Animated background */
+        .bg-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 0;
+            background: linear-gradient(125deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-primary) 100%);
+            transition: background 0.3s ease;
+        }
+
+        [data-theme="light"] .bg-gradient {
+            background: linear-gradient(125deg, #f8fafc 0%, #ffffff 50%, #f8fafc 100%);
+        }
+
+        .bg-gradient::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.12) 0%, transparent 50%),
+                radial-gradient(circle at 80% 50%, rgba(34, 211, 238, 0.12) 0%, transparent 50%),
+                radial-gradient(circle at 50% 100%, rgba(16, 185, 129, 0.08) 0%, transparent 50%);
+            animation: gradientShift 30s ease-in-out infinite;
+            opacity: 0.6;
+        }
+
+        [data-theme="light"] .bg-gradient::before {
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 50%, rgba(34, 211, 238, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 50% 100%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
+            opacity: 0.4;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { transform: translate(0, 0) scale(1) rotate(0deg); }
+            25% { transform: translate(-20px, -20px) scale(1.05) rotate(1deg); }
+            50% { transform: translate(20px, -10px) scale(0.95) rotate(-1deg); }
+            75% { transform: translate(-10px, 20px) scale(1.05) rotate(0.5deg); }
+        }
+
+        /* Grid overlay */
+        .grid-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(99, 102, 241, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(99, 102, 241, 0.02) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        [data-theme="light"] .grid-overlay {
+            background-image: 
+                linear-gradient(rgba(99, 102, 241, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(99, 102, 241, 0.03) 1px, transparent 1px);
+        }
+
+        /* Particles */
+        .particle {
+            position: fixed;
+            pointer-events: none;
+            opacity: 0;
+            z-index: 1;
+        }
+
+        .particle::before {
+            content: '';
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.6), rgba(34, 211, 238, 0.6));
+            border-radius: 50%;
+            filter: blur(1px);
+        }
+
+        @keyframes particleFloat {
+            0% {
+                opacity: 0;
+                transform: translateY(100vh) translateX(0) scale(0);
+            }
+            10% {
+                opacity: 0.4;
+            }
+            90% {
+                opacity: 0.4;
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-100vh) translateX(100px) scale(1);
+            }
+        }
+
+        /* Main container */
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 1920px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        @media (min-width: 2560px) {
+            .container {
+                max-width: 2400px;
+            }
+        }
+
+        @media (min-width: 3840px) {
+            .container {
+                max-width: 3200px;
+            }
+        }
+
+        /* Header */
+        .header {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 1.5rem 2rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--card-shadow);
+            animation: slideDown 0.5s var(--animation-smooth);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s var(--animation-smooth);
+            text-decoration: none;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .symbol-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .symbol-name {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .symbol-meta {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            position: relative;
+        }
+
+        .theme-controls {
+            display: flex;
+            gap: 0.5rem;
+            position: relative;
+        }
+
+        .theme-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+        }
+
+        .theme-btn:hover {
+            background: rgba(99, 102, 241, 0.1);
+            border-color: rgba(99, 102, 241, 0.3);
+            transform: scale(1.05);
+        }
+
+        [data-theme="light"] .theme-btn {
+            background: rgba(0, 0, 0, 0.05);
+            border-color: rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="light"] .theme-btn:hover {
+            background: rgba(99, 102, 241, 0.1);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        /* Accent picker dropdown */
+        .accent-picker {
+            position: absolute;
+            top: calc(100% + 1rem);
+            right: 4rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: var(--card-shadow);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+
+        [data-theme="light"] .accent-picker {
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+        }
+
+        .accent-picker.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .accent-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .accent-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .accent-option:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .accent-option.active {
+            box-shadow: 0 0 0 3px var(--primary);
+        }
+
+        .accent-option::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .accent-option.active::after {
+            opacity: 1;
+        }
+
+        .timezone-info {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 320px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border-right: 1px solid var(--glass-border);
+            transform: translateX(-100%);
+            transition: transform 0.3s var(--animation-smooth);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        [data-theme="light"] .sidebar {
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.08);
+            border-right: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        .sidebar.show {
+            transform: translateX(0);
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--glass-border);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(34, 211, 238, 0.1));
+        }
+
+        .sidebar-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tree-search {
+            position: relative;
+        }
+
+        .tree-search input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        [data-theme="light"] .tree-search input {
+            background: rgba(0, 0, 0, 0.04);
+            border-color: rgba(0, 0, 0, 0.08);
+            color: var(--text-primary);
+        }
+
+        [data-theme="light"] .tree-search input::placeholder {
+            color: rgba(0, 0, 0, 0.4);
+        }
+
+        [data-theme="light"] .tree-search input:focus {
+            background: rgba(255, 255, 255, 1);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .tree-search input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .tree-search input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .tree-search i {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+
+        .tree-view {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+
+        .tree-bucket {
+            margin-bottom: 0.5rem;
+        }
+
+        .tree-bucket-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            user-select: none;
+        }
+
+        .tree-bucket-header:hover {
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        [data-theme="light"] .tree-bucket-header {
+            background: rgba(0, 0, 0, 0.02);
+        }
+
+        [data-theme="light"] .tree-bucket-header:hover {
+            background: rgba(99, 102, 241, 0.08);
+        }
+
+        .tree-bucket-header .arrow {
+            display: inline-block;
+            transition: transform 0.3s;
+            color: var(--text-secondary);
+        }
+
+        .tree-bucket-header.expanded .arrow {
+            transform: rotate(90deg);
+        }
+
+        .tree-symbols {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            margin-left: 1rem;
+        }
+
+        .tree-symbols.expanded {
+            max-height: 1000px;
+        }
+
+        .tree-symbol {
+            padding: 0.6rem 1rem;
+            margin: 0.25rem 0;
+            cursor: pointer;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s;
+        }
+
+        .tree-symbol:hover {
+            background: rgba(99, 102, 241, 0.1);
+            transform: translateX(5px);
+        }
+
+        [data-theme="light"] .tree-symbol:hover {
+            background: rgba(99, 102, 241, 0.08);
+        }
+
+        .tree-symbol.selected {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(34, 211, 238, 0.2));
+            border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+
+        .tree-symbol-name {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+
+        .tree-symbol-main {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .tree-symbol-sub {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .status-indicator.fresh {
+            background: var(--success);
+            box-shadow: 0 0 8px var(--success);
+        }
+
+        .status-indicator.stale {
+            background: var(--warning);
+            box-shadow: 0 0 8px var(--warning);
+        }
+
+        .status-indicator.very-stale {
+            background: var(--danger);
+            box-shadow: 0 0 8px var(--danger);
+        }
+
+        .sidebar-toggle {
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            z-index: 999;
+            width: 50px;
+            height: 50px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--text-primary);
+            font-size: 1.2rem;
+        }
+
+        .sidebar-toggle:hover {
+            background: rgba(99, 102, 241, 0.1);
+            border-color: rgba(99, 102, 241, 0.3);
+            transform: scale(1.1);
+        }
+
+        .sidebar-toggle.shifted {
+            left: 340px;
+        }
+
+        /* Main content */
+        .main-content {
+            transition: margin-left 0.3s ease-out, width 0.3s ease-out;
+            width: 100%;
+        }
+
+        .main-content.shifted {
+            margin-left: 320px;
+            width: calc(100% - 320px);
+        }
+
+        /* Metrics cards */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (min-width: 1920px) {
+            .metrics-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .metric-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: all 0.3s var(--animation-smooth);
+            position: relative;
+            overflow: hidden;
+        }
+
+        [data-theme="light"] .metric-card {
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s var(--animation-smooth);
+        }
+
+        .metric-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .metric-card:hover {
+            transform: var(--hover-transform);
+            box-shadow: 0 12px 24px rgba(99, 102, 241, 0.15);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        .metric-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .metric-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(34, 211, 238, 0.2));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .metric-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .metric-value {
+            font-size: 1.75rem;
+            font-weight: 800;
+            margin-bottom: 0.25rem;
+        }
+
+        .metric-value.positive {
+            color: var(--success);
+        }
+
+        .metric-value.negative {
+            color: var(--danger);
+        }
+
+        .metric-sublabel {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        /* Charts */
+        .chart-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--card-shadow);
+            position: relative;
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+
+        [data-theme="light"] .chart-container {
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .chart-title-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(34, 211, 238, 0.2));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chart-title h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .chart-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .chart-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .chart-btn:hover {
+            background: rgba(99, 102, 241, 0.1);
+            border-color: rgba(99, 102, 241, 0.3);
+            color: var(--text-primary);
+        }
+
+        .chart-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .chart-wrapper {
+            width: calc(100vw - 40px);
+            min-width: calc(100vw - 40px);
+            height: 400px;
+            display: block;
+        }
+
+        /* Sync status */
+        .sync-status {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 100;
+        }
+
+        [data-theme="light"] .sync-status {
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        /* Additional light mode fixes for detail view */
+        [data-theme="light"] .header {
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+            border: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        [data-theme="light"] .metric-icon {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(34, 211, 238, 0.15));
+            color: var(--primary-dark);
+        }
+
+        [data-theme="light"] .sidebar-header {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(34, 211, 238, 0.08));
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        }
+
+        [data-theme="light"] .chart-btn {
+            background: rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            color: var(--text-secondary);
+        }
+
+        [data-theme="light"] .chart-btn:hover {
+            background: rgba(99, 102, 241, 0.08);
+            border-color: rgba(99, 102, 241, 0.3);
+            color: var(--text-primary);
+        }
+
+        [data-theme="light"] .chart-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        [data-theme="light"] .timezone-info {
+            background: rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            color: var(--text-secondary);
+        }
+
+        [data-theme="light"] .back-btn {
+            box-shadow: 0 2px 4px rgba(99, 102, 241, 0.2);
+        }
+
+        [data-theme="light"] .tree-symbol.selected {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(34, 211, 238, 0.15));
+            border: 1px solid rgba(99, 102, 241, 0.25);
+        }
+
+        .sync-status:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .sync-status.collapsed .sync-details {
+            max-height: 0;
+            margin-top: 0;
+            opacity: 0;
+        }
+
+        .sync-status-text {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .sync-status-ok {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            }
+        }
+
+        .sync-details {
+            margin-top: 1rem;
+            max-height: 200px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            font-size: 0.85rem;
+        }
+
+        .expand-icon {
+            display: inline-block;
+            transition: transform 0.3s;
+            margin-left: 0.5rem;
+        }
+
+        .sync-status.collapsed .expand-icon {
+            transform: rotate(-90deg);
+        }
+
+        /* Loading state */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 400px;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(99, 102, 241, 0.1);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Value change animation */
+        @keyframes valueChange {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .metric-value.changing {
+            animation: valueChange 0.3s ease;
+        }
+
+        /* Theme switcher */
+        .theme-switcher {
+            position: fixed;
+            bottom: 2rem;
+            left: 2rem;
+            z-index: 1000;
+        }
+
+        .theme-toggle-btn {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s var(--animation-smooth);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .theme-toggle-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .theme-options {
+            position: absolute;
+            bottom: calc(100% + 1rem);
+            left: 0;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            min-width: 280px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.3s var(--animation-smooth);
+            box-shadow: var(--card-shadow);
+        }
+
+        [data-theme="light"] .theme-options {
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+        }
+
+        .theme-switcher.expanded .theme-options {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .theme-option-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .theme-option-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .theme-option-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .theme-mode-toggle {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+        }
+
+        .mode-btn {
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        [data-theme="light"] .mode-btn {
+            background: rgba(0, 0, 0, 0.05);
+            border-color: rgba(0, 0, 0, 0.1);
+        }
+
+        .mode-btn:hover {
+            background: rgba(99, 102, 241, 0.1);
+            border-color: rgba(99, 102, 241, 0.3);
+            color: var(--text-primary);
+        }
+
+        .mode-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .theme-option-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+        }
+
+        .color-option {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .color-option:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .color-option.active {
+            box-shadow: 0 0 0 3px var(--primary);
+        }
+
+        .color-option.active::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-gradient"></div>
+    <div class="grid-overlay"></div>
+
+    <!-- Sidebar Toggle -->
+    <button class="sidebar-toggle" id="sidebarToggle">
+        <i class="ri-menu-2-line"></i>
+    </button>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-title">
+                <i class="ri-folder-chart-line"></i>
+                Symbol Navigator
+            </div>
+            <div class="tree-search">
+                <i class="ri-search-line"></i>
+                <input type="text" id="treeSearch" placeholder="Search symbols...">
+            </div>
+        </div>
+        <div class="tree-view" id="treeContainer">
+            <!-- Tree view will be populated here -->
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <div class="container">
+            <!-- Header -->
+            <div class="header">
+                <div class="header-left">
+                    <a href="/" class="back-btn">
+                        <i class="ri-arrow-left-line"></i>
+                        Back to Dashboard
+                    </a>
+                    <div class="symbol-info">
+                        <div class="symbol-name" id="currentSymbolName">-</div>
+                        <div class="symbol-meta">
+                            <span id="currentSelection">No selection</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="timezone-info">
+                        <i class="ri-time-line"></i>
+                        Data: UTC | Local: <span id="localTimezone"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metrics Grid -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon">
+                            <i class="ri-money-dollar-circle-line"></i>
+                        </div>
+                        <div class="metric-label">Last Price (UTC)</div>
+                    </div>
+                    <div class="metric-value" id="lastPrice">-</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon">
+                            <i class="ri-exchange-line"></i>
+                        </div>
+                        <div class="metric-label">Current Position</div>
+                    </div>
+                    <div class="metric-value" id="currentPosition">-</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon">
+                            <i class="ri-line-chart-line"></i>
+                        </div>
+                        <div class="metric-label">Net Return (After Fees)</div>
+                    </div>
+                    <div class="metric-value" id="cumulativeReturn">-</div>
+                    <div class="metric-sublabel" id="netReturn">Gross: -</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon">
+                            <i class="ri-percent-line"></i>
+                        </div>
+                        <div class="metric-label">Transaction Fees</div>
+                    </div>
+                    <div class="metric-value negative" id="totalFees">-</div>
+                </div>
+            </div>
+
+            <!-- Cumulative Return Chart -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <div class="chart-title">
+                        <div class="chart-title-icon">
+                            <i class="ri-stock-line"></i>
+                        </div>
+                        <h3>Cumulative Return Over Time (UTC)</h3>
+                    </div>
+                    <div class="chart-controls">
+                        <span id="zoomStatsDivider" style="margin: 0 1rem; color: var(--text-secondary); display: none;">|</span>
+                        
+                        <button class="chart-btn active" id="btnNetOnly" onclick="updateChartVisibility('net')">Net Only</button>
+                        <button class="chart-btn" id="btnGrossOnly" onclick="updateChartVisibility('gross')">Gross Only</button>
+                        <button class="chart-btn" id="btnShowBoth" onclick="updateChartVisibility('both')">Show Both</button>
+                        <span style="margin: 0 1rem; color: var(--text-secondary);">|</span>
+                        <button class="chart-btn" id="btnMinutely" onclick="updateResolution('minutely')">Minutely</button>
+                        <button class="chart-btn active" id="btnHourly" onclick="updateResolution('hourly')">Hourly</button>
+                    </div>
+                </div>
+                <div id="cumulativeReturnChart" class="chart-wrapper loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+
+            <!-- Price Position Chart -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <div class="chart-title">
+                        <div class="chart-title-icon">
+                            <i class="ri-bar-chart-box-line"></i>
+                        </div>
+                        <h3>Price with Position Overlay (UTC)</h3>
+                    </div>
+                    <div class="chart-controls">
+                        <button class="chart-btn" id="btnMinutelyPrice" onclick="updateResolution('minutely')">Minutely</button>
+                        <button class="chart-btn active" id="btnHourlyPrice" onclick="updateResolution('hourly')">Hourly</button>
+                    </div>
+                </div>
+                <div id="pricePositionChart" class="chart-wrapper loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Theme Switcher -->
+    <div class="theme-switcher" id="themeSwitcher">
+        <button class="theme-toggle-btn" id="themeToggleBtn">
+            <i class="ri-palette-line"></i>
+        </button>
+        <div class="theme-options">
+            <div class="theme-option-group">
+                <div class="theme-option-label">Theme Mode</div>
+                <div class="theme-mode-toggle">
+                    <button class="mode-btn" id="lightModeBtn">
+                        <i class="ri-sun-line"></i>
+                        Light
+                    </button>
+                    <button class="mode-btn active" id="darkModeBtn">
+                        <i class="ri-moon-line"></i>
+                        Dark
+                    </button>
+                </div>
+            </div>
+            <div class="theme-option-group">
+                <div class="theme-option-label">Accent Color</div>
+                <div class="theme-option-row">
+                    <div class="color-option active" data-accent="default" style="background: linear-gradient(135deg, #6366f1, #22d3ee);" title="Default"></div>
+                    <div class="color-option" data-accent="purple" style="background: linear-gradient(135deg, #9333ea, #ec4899);" title="Purple"></div>
+                    <div class="color-option" data-accent="green" style="background: linear-gradient(135deg, #10b981, #14b8a6);" title="Green"></div>
+                    <div class="color-option" data-accent="orange" style="background: linear-gradient(135deg, #f97316, #f59e0b);" title="Orange"></div>
+                    <div class="color-option" data-accent="pink" style="background: linear-gradient(135deg, #ec4899, #f43f5e);" title="Pink"></div>
+                    <div class="color-option" data-accent="blue" style="background: linear-gradient(135deg, #3b82f6, #06b6d4);" title="Blue"></div>
+                    <div class="color-option" data-accent="red" style="background: linear-gradient(135deg, #ef4444, #f97316);" title="Red"></div>
+                    <div class="color-option" data-accent="teal" style="background: linear-gradient(135deg, #14b8a6, #06b6d4);" title="Teal"></div>
+                    <div class="color-option" data-accent="amber" style="background: linear-gradient(135deg, #f59e0b, #f97316);" title="Amber"></div>
+                    <div class="color-option" data-accent="indigo" style="background: linear-gradient(135deg, #4f46e5, #7c3aed);" title="Indigo"></div>
+                    <div class="color-option" data-accent="rose" style="background: linear-gradient(135deg, #f43f5e, #ec4899);" title="Rose"></div>
+                    <div class="color-option" data-accent="emerald" style="background: linear-gradient(135deg, #10b981, #06b6d4);" title="Emerald"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sync Status -->
+    <div class="sync-status collapsed" id="syncStatusContainer">
+        <div class="sync-status-text" id="syncStatusText">
+            Sync: <span class="text-muted">Checking...</span> 
+            <span class="expand-icon">▼</span>
+        </div>
+        <div class="sync-details">
+            <div id="dataStatusText" style="margin-top: 0.5rem;">Data: <span class="text-muted">Checking...</span></div>
+            <div id="bucketStatusSummary" style="margin-top: 0.5rem;">
+                <!-- Bucket status will be populated here -->
+            </div>
+            <div id="syncCountdown" style="margin-top: 0.5rem; color: var(--text-secondary);"></div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables (same as index.html)
+        let currentSymbol = null;
+        let currentBucket = null;
+        let currentData = null;
+        let updateInterval = null;
+        let lastTimestamp = null;
+        let lastSyncTime = null;
+        let countdownInterval = null;
+        let bucketData = [];
+        let currentPollInterval = 2000;
+        let currentDataVersion = 0;
+        let syncInProgress = false;
+        let loadedFromURL = false;
+        let syncingBuckets = new Set();
+        let expandedBuckets = new Set(); // Track which buckets are expanded
+        let currentTheme = 'dark';
+        let currentAccent = 'default';
+        let currentResolution = 'hourly'; // Default to hourly
+        let savedZoomState = null; // Store zoom state when switching resolutions
+        let savedPriceZoomState = null; // Store zoom state for price chart
+        let isZoomed = false; // Track if charts are zoomed
+
+        // Particles animation
+        function createParticles() {
+            const particleCount = 15;
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDuration = (15 + Math.random() * 20) + 's';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animation = `particleFloat ${15 + Math.random() * 20}s ${Math.random() * 20}s infinite`;
+                document.body.appendChild(particle);
+            }
+        }
+
+        // Helper functions (same as index.html)
+        function findSymbolNameByTsId(tsId, bucket) {
+            for (const bucketInfo of bucketData) {
+                if (bucketInfo.name === bucket) {
+                    for (const symbol of bucketInfo.symbols) {
+                        if (symbol.ts_id === tsId) {
+                            return symbol.symbol;
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        function findTsIdBySymbolName(symbolName, bucket) {
+            for (const bucketInfo of bucketData) {
+                if (bucketInfo.name === bucket) {
+                    for (const symbol of bucketInfo.symbols) {
+                        if (symbol.symbol === symbolName) {
+                            return symbol.ts_id;
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        // Parse URL and load the correct symbol
+        async function parseAndLoadFromURL() {
+            const pathParts = window.location.pathname.split('/');
+            
+            // Handle both /symbol/<bucket>/<ts_id> and /modern/symbol/<bucket>/<ts_id>
+            let bucket, tsSymbol;
+            
+            if (pathParts.length >= 4 && pathParts[1] === 'modern' && pathParts[2] === 'symbol') {
+                // Modern route: /modern/symbol/<bucket>/<ts_id>
+                bucket = pathParts[3];
+                tsSymbol = pathParts[4];
+            } else if (pathParts.length >= 3 && pathParts[1] === 'symbol') {
+                // Default route: /symbol/<bucket>/<ts_id>
+                bucket = pathParts[2];
+                tsSymbol = pathParts[3];
+            }
+            
+            if (bucket && tsSymbol && tsSymbol.startsWith('TS-')) {
+                currentBucket = bucket;
+                // Ensure this bucket is expanded
+                expandedBuckets.add(bucket);
+                
+                const apiUrl = `/api/data/${bucket}/${tsSymbol}`;
+                
+                try {
+                    const response = await fetch(apiUrl);
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        currentData = data;
+                        updateMetrics(data.metrics);
+                        plotCumulativeReturn(data);
+                        plotPriceWithPositions(data);
+                        
+                        if (data.timestamps && data.timestamps.length > 0) {
+                            lastTimestamp = data.timestamps[data.timestamps.length - 1];
+                        }
+                        
+                        // Update the symbol immediately with the TS-ID
+                        currentSymbol = tsSymbol.replace('TS-', '');
+                        
+                        // Try to find the symbol name, but update display regardless
+                        const symbolName = findSymbolNameByTsId(tsSymbol.replace('TS-', ''), bucket);
+                        
+                        // If we don't have the symbol name yet, we'll show the TS-ID temporarily
+                        // and update it later when bucketData is loaded
+                        updateSymbolDisplay(symbolName || `TS-${currentSymbol}`, bucket, currentSymbol);
+                        
+                        loadedFromURL = true;
+                        
+                        setTimeout(() => {
+                            updateSidebarSelection(bucket, tsSymbol.replace('TS-', ''));
+                        }, 200);
+                        
+                        return;
+                    }
+                } catch (error) {
+                    console.error('Error loading direct data:', error);
+                }
+            }
+        }
+
+        // Update symbol display in header
+        function updateSymbolDisplay(symbolName, bucket, tsId) {
+            document.getElementById('currentSymbolName').textContent = symbolName || '-';
+            const bucketName = bucket.replace(/_/g, ' ').toUpperCase();
+            document.getElementById('currentSelection').innerHTML = `
+                <span>${symbolName} • TS-${tsId} • ${bucketName}</span>
+            `;
+        }
+
+        // Load buckets for sidebar
+        async function loadBuckets() {
+            try {
+                const response = await fetch('/api/buckets');
+                const buckets = await response.json();
+                bucketData = buckets;
+                
+                for (const bucket of buckets) {
+                    const symbolsResponse = await fetch(`/api/buckets/${bucket.name}/symbols`);
+                    const symbolsData = await symbolsResponse.json();
+                    bucket.symbols = Array.isArray(symbolsData) ? symbolsData : symbolsData.symbols || [];
+                }
+                
+                renderTree();
+            } catch (error) {
+                console.error('Error loading buckets:', error);
+            }
+        }
+
+        // Render tree view in sidebar
+        function renderTree(searchTerm = '') {
+            const container = document.getElementById('treeContainer');
+            container.innerHTML = '';
+            
+            const filteredBuckets = filterBuckets(bucketData, searchTerm);
+            
+            filteredBuckets.forEach(bucket => {
+                const bucketEl = createBucketElement(bucket);
+                container.appendChild(bucketEl);
+            });
+        }
+
+        function filterBuckets(buckets, searchTerm) {
+            if (!searchTerm) return buckets;
+            
+            const term = searchTerm.toLowerCase();
+            return buckets.map(bucket => {
+                const filteredSymbols = bucket.symbols ? 
+                    bucket.symbols.filter(s => 
+                        s.symbol.toLowerCase().includes(term) ||
+                        (s.display_name && s.display_name.toLowerCase().includes(term)) ||
+                        (s.pair && s.pair.toLowerCase().includes(term)) ||
+                        bucket.name.toLowerCase().includes(term)
+                    ) : [];
+                
+                if (filteredSymbols.length > 0 || bucket.name.toLowerCase().includes(term)) {
+                    return { ...bucket, symbols: filteredSymbols };
+                }
+                return null;
+            }).filter(Boolean);
+        }
+
+        function createBucketElement(bucket) {
+            const bucketDiv = document.createElement('div');
+            bucketDiv.className = 'tree-bucket';
+            
+            const bucketHeader = document.createElement('div');
+            bucketHeader.className = 'tree-bucket-header';
+            bucketHeader.setAttribute('data-bucket', bucket.name);
+            
+            // Check if this bucket should be expanded
+            const isExpanded = expandedBuckets.has(bucket.name) || bucket.name === currentBucket;
+            if (isExpanded) {
+                bucketHeader.classList.add('expanded');
+            }
+            
+            bucketHeader.innerHTML = `
+                <span>📁 ${bucket.display_name} <small style="color: var(--text-secondary);">(${bucket.symbols ? bucket.symbols.length : 0})</small></span>
+                <span class="arrow">▶</span>
+            `;
+            
+            const symbolsDiv = document.createElement('div');
+            symbolsDiv.className = 'tree-symbols';
+            if (isExpanded) {
+                symbolsDiv.classList.add('expanded');
+            }
+            
+            if (bucket.symbols) {
+                bucket.symbols.forEach(symbol => {
+                    const symbolEl = createSymbolElement(bucket.name, symbol);
+                    symbolsDiv.appendChild(symbolEl);
+                });
+            }
+            
+            bucketHeader.addEventListener('click', () => {
+                const expanding = !bucketHeader.classList.contains('expanded');
+                bucketHeader.classList.toggle('expanded');
+                symbolsDiv.classList.toggle('expanded');
+                
+                // Update the expanded state tracking
+                if (expanding) {
+                    expandedBuckets.add(bucket.name);
+                } else {
+                    expandedBuckets.delete(bucket.name);
+                }
+            });
+            
+            bucketDiv.appendChild(bucketHeader);
+            bucketDiv.appendChild(symbolsDiv);
+            
+            return bucketDiv;
+        }
+
+        function createSymbolElement(bucketName, symbol) {
+            const symbolDiv = document.createElement('div');
+            symbolDiv.className = 'tree-symbol';
+            
+            symbolDiv.setAttribute('data-bucket', bucketName);
+            symbolDiv.setAttribute('data-ts-id', symbol.ts_id);
+            
+            if (currentBucket === bucketName && currentSymbol === symbol.ts_id) {
+                symbolDiv.classList.add('selected');
+            }
+            
+            const statusClass = symbol.status === 'fresh' ? 'fresh' : 
+                              symbol.status === 'stale' ? 'stale' : 'very-stale';
+            
+            const displayName = symbol.display_name || symbol.symbol;
+            
+            symbolDiv.innerHTML = `
+                <div class="tree-symbol-name">
+                    <span class="tree-symbol-main">${displayName}</span>
+                    <span class="tree-symbol-sub">TS-${symbol.ts_id} • ${symbol.pair || ''}</span>
+                </div>
+                <span class="status-indicator ${statusClass}"></span>
+            `;
+            
+            symbolDiv.addEventListener('click', () => {
+                selectSymbol(bucketName, symbol.ts_id, `TS-${symbol.ts_id}`);
+            });
+            
+            return symbolDiv;
+        }
+
+        async function selectSymbol(bucketName, tsId, symbolName) {
+            // Normalize tsId to just the number part
+            const normalizedTsId = tsId.replace('TS-', '');
+            // Check if we're actually switching to a different symbol
+            const isSymbolSwitch = (currentBucket !== bucketName || currentSymbol !== normalizedTsId);
+            
+            currentBucket = bucketName;
+            currentSymbol = tsId.replace('TS-', '');  // Store just the number part
+            
+            // Only reset to hourly when switching to a DIFFERENT symbol
+            if (isSymbolSwitch && currentResolution === 'minutely') {
+                currentResolution = 'hourly';
+                // Update button states
+                document.getElementById('btnMinutely').classList.remove('active');
+                document.getElementById('btnHourly').classList.add('active');
+                document.getElementById('btnMinutelyPrice').classList.remove('active');
+                document.getElementById('btnHourlyPrice').classList.add('active');
+            }
+            
+            // Clear saved zoom state when switching symbols
+            if (isSymbolSwitch) {
+                savedZoomState = null;
+                savedPriceZoomState = null;
+            }
+            
+            // Ensure the current bucket is expanded
+            expandedBuckets.add(bucketName);
+            
+            let displayName = symbolName;
+            for (const bucket of bucketData) {
+                if (bucket.name === bucketName && bucket.symbols) {
+                    const symbolInfo = bucket.symbols.find(s => s.ts_id === tsId);
+                    if (symbolInfo) {
+                        displayName = symbolInfo.display_name || symbolInfo.symbol;
+                        break;
+                    }
+                }
+            }
+            
+            updateSymbolDisplay(displayName, bucketName, tsId);
+            
+            // Just update the selection without re-rendering the entire tree
+            document.querySelectorAll('.tree-symbol.selected').forEach(el => {
+                el.classList.remove('selected');
+            });
+            
+            // Find and select the current symbol
+            const symbolElements = document.querySelectorAll('.tree-symbol');
+            symbolElements.forEach(el => {
+                const elementBucket = el.getAttribute('data-bucket');
+                const elementTsId = el.getAttribute('data-ts-id');
+                
+                if (elementBucket === bucketName && elementTsId === tsId) {
+                    el.classList.add('selected');
+                }
+            });
+            
+            try {
+                const response = await fetch(`/api/data/${bucketName}/TS-${tsId}?resolution=${currentResolution}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    currentData = data;
+                    updateMetrics(data.metrics);
+                    plotCumulativeReturn(data);
+                    plotPriceWithPositions(data);
+                    
+                    if (data.timestamps && data.timestamps.length > 0) {
+                        lastTimestamp = data.timestamps[data.timestamps.length - 1];
+                    }
+                } else {
+                    console.error('Error loading data:', data.error);
+                }
+            } catch (error) {
+                console.error('Error loading symbol data:', error);
+            }
+        }
+
+        function updateSidebarSelection(bucketName, tsId) {
+            document.querySelectorAll('.tree-symbol.selected').forEach(el => {
+                el.classList.remove('selected');
+            });
+            
+            const symbolElements = document.querySelectorAll('.tree-symbol');
+            symbolElements.forEach(el => {
+                const elementBucket = el.getAttribute('data-bucket');
+                const elementTsId = el.getAttribute('data-ts-id');
+                
+                if (elementBucket === bucketName && elementTsId === tsId) {
+                    el.classList.add('selected');
+                }
+            });
+        }
+
+        // Update chart visibility
+        function updateChartVisibility(mode) {
+            document.querySelectorAll('.chart-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            let visibilitySettings;
+            switch(mode) {
+                case 'both':
+                    document.getElementById('btnShowBoth').classList.add('active');
+                    visibilitySettings = [true, true, true];
+                    break;
+                case 'gross':
+                    document.getElementById('btnGrossOnly').classList.add('active');
+                    visibilitySettings = [false, true, false];
+                    break;
+                case 'net':
+                    document.getElementById('btnNetOnly').classList.add('active');
+                    visibilitySettings = [true, false, false];
+                    break;
+            }
+            
+            Plotly.update('cumulativeReturnChart', {visible: visibilitySettings});
+        }
+
+        // Update resolution and reload data
+        function updateResolution(resolution) {
+            // Save current zoom state before reloading
+            try {
+                const chartDiv = document.getElementById('cumulativeReturnChart');
+                if (chartDiv && chartDiv.layout) {
+                    savedZoomState = {
+                        xaxis: {
+                            range: chartDiv.layout.xaxis.range ? [...chartDiv.layout.xaxis.range] : null,
+                            autorange: chartDiv.layout.xaxis.autorange
+                        },
+                        yaxis: {
+                            range: chartDiv.layout.yaxis.range ? [...chartDiv.layout.yaxis.range] : null,
+                            autorange: chartDiv.layout.yaxis.autorange
+                        }
+                    };
+                }
+            } catch (e) {
+                // If we can't get zoom state, that's ok
+                savedZoomState = null;
+            }
+            
+            // Also save price chart zoom state
+            try {
+                const priceChartDiv = document.getElementById('pricePositionChart');
+                if (priceChartDiv && priceChartDiv.layout) {
+                    savedPriceZoomState = {
+                        xaxis: {
+                            range: priceChartDiv.layout.xaxis.range ? [...priceChartDiv.layout.xaxis.range] : null,
+                            autorange: priceChartDiv.layout.xaxis.autorange
+                        },
+                        yaxis: {
+                            range: priceChartDiv.layout.yaxis.range ? [...priceChartDiv.layout.yaxis.range] : null,
+                            autorange: priceChartDiv.layout.yaxis.autorange
+                        }
+                    };
+                }
+            } catch (e) {
+                // If we can't get zoom state, that's ok
+                savedPriceZoomState = null;
+            }
+            
+            // Update button states for both charts
+            document.getElementById('btnMinutely').classList.remove('active');
+            document.getElementById('btnHourly').classList.remove('active');
+            document.getElementById('btnMinutelyPrice').classList.remove('active');
+            document.getElementById('btnHourlyPrice').classList.remove('active');
+            
+            if (resolution === 'minutely') {
+                document.getElementById('btnMinutely').classList.add('active');
+                document.getElementById('btnMinutelyPrice').classList.add('active');
+            } else {
+                document.getElementById('btnHourly').classList.add('active');
+                document.getElementById('btnHourlyPrice').classList.add('active');
+            }
+            
+            // Update global resolution and reload data
+            currentResolution = resolution;
+            if (currentBucket && currentSymbol) {
+                selectSymbol(currentBucket, currentSymbol, `TS-${currentSymbol}`);
+            }
+        }
+
+        // Update metrics (same as index.html)
+        function updateMetrics(metrics) {
+            if (!metrics) return;
+            
+            const lastPriceEl = document.getElementById('lastPrice');
+            const cumulativeReturnEl = document.getElementById('cumulativeReturn');
+            
+            const prevPrice = lastPriceEl ? lastPriceEl.textContent : '-';
+            const prevReturn = cumulativeReturnEl ? cumulativeReturnEl.textContent : '-';
+            
+            if (lastPriceEl && metrics.last_price !== undefined) {
+                const newPrice = `$${metrics.last_price.toFixed(2)}`;
+                updateMetricWithAnimation('lastPrice', newPrice, prevPrice);
+            }
+            
+            const position = document.getElementById('currentPosition');
+            if (position && metrics.last_position !== undefined) {
+                let posText = 'FLAT';
+                let posClass = '';
+                if (metrics.last_position === 1) {
+                    posText = 'LONG';
+                    posClass = 'positive';
+                } else if (metrics.last_position === -1) {
+                    posText = 'SHORT';
+                    posClass = 'negative';
+                }
+                position.textContent = posText;
+                position.className = `metric-value ${posClass}`;
+            }
+            
+            if (cumulativeReturnEl && metrics.cumulative_return_after_fees !== undefined) {
+                const netPct = metrics.cumulative_return_after_fees.toFixed(2);
+                const newReturn = `${netPct >= 0 ? '+' : ''}${netPct}%`;
+                console.log('Updating net return to:', newReturn);
+                updateMetricWithAnimation('cumulativeReturn', newReturn, prevReturn);
+                cumulativeReturnEl.className = `metric-value ${netPct >= 0 ? 'positive' : 'negative'}`;
+            }
+            
+            const netReturn = document.getElementById('netReturn');
+            if (netReturn && metrics.cumulative_return !== undefined) {
+                const grossPct = metrics.cumulative_return.toFixed(2);
+                console.log('Updating gross return to:', grossPct);
+                netReturn.textContent = `Gross: ${grossPct >= 0 ? '+' : ''}${grossPct}%`;
+            }
+            
+            const totalFees = document.getElementById('totalFees');
+            if (totalFees && metrics.total_fees !== undefined) {
+                const feesPct = Math.abs(metrics.total_fees).toFixed(2);
+                console.log('Updating total fees to:', feesPct);
+                totalFees.textContent = `-${feesPct}%`;
+            }
+        }
+
+        function updateMetricWithAnimation(elementId, newValue, oldValue) {
+            const element = document.getElementById(elementId);
+            if (element && oldValue !== newValue) {
+                element.classList.add('changing');
+                element.textContent = newValue;
+                setTimeout(() => element.classList.remove('changing'), 300);
+            } else if (element) {
+                element.textContent = newValue;
+            }
+        }
+
+        // Plot cumulative return chart (same as index.html with glass theme)
+        function plotCumulativeReturn(data) {
+            if (!data.cumulative_returns) return;
+            
+            const chartDiv = document.getElementById('cumulativeReturnChart');
+            chartDiv.innerHTML = '';
+            chartDiv.classList.remove('loading');
+            
+            const traces = [];
+            
+            if (data.cumulative_returns_after_fees) {
+                const netTrace = {
+                    x: data.timestamps,
+                    y: data.cumulative_returns_after_fees,
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: 'Net Return (after fees)',
+                    line: {
+                        color: 'rgb(99, 132, 255)',
+                        width: 2
+                    },
+                    fill: 'tozeroy',
+                    fillcolor: 'rgba(99, 132, 255, 0.1)',
+                    visible: true
+                };
+                traces.push(netTrace);
+            }
+            
+            const grossTrace = {
+                x: data.timestamps,
+                y: data.cumulative_returns,
+                type: 'scatter',
+                mode: 'lines',
+                name: 'Gross Return',
+                line: {
+                    color: 'rgb(75, 192, 192)',
+                    width: 2
+                },
+                visible: false
+            };
+            traces.push(grossTrace);
+            
+            if (data.cumulative_returns_after_fees) {
+                const feeImpactTrace = {
+                    x: [...data.timestamps, ...data.timestamps.slice().reverse()],
+                    y: [...data.cumulative_returns, ...data.cumulative_returns_after_fees.slice().reverse()],
+                    type: 'scatter',
+                    mode: 'none',
+                    name: 'Fee Impact',
+                    fill: 'toself',
+                    fillcolor: 'rgba(75, 192, 192, 0.1)',
+                    showlegend: false,
+                    hoverinfo: 'skip',
+                    visible: false
+                };
+                traces.push(feeImpactTrace);
+            }
+            
+            const isDark = currentTheme === 'dark';
+            const layout = {
+                xaxis: {
+                    title: 'Date',
+                    type: 'date',
+                    rangeslider: { visible: true },
+                    gridcolor: isDark ? 'rgba(148, 163, 184, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                    zerolinecolor: isDark ? 'rgba(148, 163, 184, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                    titlefont: { color: isDark ? '#f1f5f9' : '#1e293b' },
+                    tickfont: { color: isDark ? '#94a3b8' : '#64748b' }
+                },
+                yaxis: {
+                    title: 'Cumulative Return (%)',
+                    tickformat: '.2f',
+                    gridcolor: isDark ? 'rgba(148, 163, 184, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                    zerolinecolor: isDark ? 'rgba(148, 163, 184, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                    titlefont: { color: isDark ? '#f1f5f9' : '#1e293b' },
+                    tickfont: { color: isDark ? '#94a3b8' : '#64748b' }
+                },
+                margin: { t: 30, b: 40 },
+                height: 400,
+                showlegend: false,
+                hovermode: 'x unified',
+                paper_bgcolor: 'transparent',
+                plot_bgcolor: 'transparent',
+                font: { color: isDark ? '#f1f5f9' : '#1e293b' },
+                autosize: false,
+                width: window.innerWidth - 40,
+            };
+            
+            const config = {
+                responsive: false,
+                displayModeBar: true,
+                toImageButtonOptions: {
+                    format: 'png',
+                    filename: 'cumulative_return',
+                    height: 400,
+                    width: window.innerWidth - 40,
+                    scale: 1
+                }
+            };
+            
+            // Apply saved zoom state if it exists
+            if (savedZoomState) {
+                if (savedZoomState.xaxis.range) {
+                    layout.xaxis.range = savedZoomState.xaxis.range;
+                    layout.xaxis.autorange = false;
+                }
+                if (savedZoomState.yaxis.range) {
+                    layout.yaxis.range = savedZoomState.yaxis.range;
+                    layout.yaxis.autorange = false;
+                }
+            }
+            
+            Plotly.newPlot('cumulativeReturnChart', traces, layout, config).then(() => {
+                // Add zoom detection for cumulative return chart after chart is created
+                const cumulativeChartDiv = document.getElementById('cumulativeReturnChart');
+                cumulativeChartDiv.on('plotly_relayout', (eventData) => {
+                    // Check if this is a zoom event (has xaxis range)
+                    if (eventData['xaxis.range[0]'] && eventData['xaxis.range[1]']) {
+                        isZoomed = true;
+                } else if (eventData['xaxis.autorange']) {
+                    // Chart was reset to full range
+                    isZoomed = false;
+                }
+                });
+            });
+            
+            // Clear saved zoom state after applying it
+            savedZoomState = null;
+        }
+
+        // Plot price with positions (same as index.html with glass theme)
+        function plotPriceWithPositions(data) {
+            if (!data.prices || !data.positions) return;
+            
+            // Store data for re-rendering on theme change
+            window.lastPriceChartData = data;
+            
+            const chartDiv = document.getElementById('pricePositionChart');
+            chartDiv.innerHTML = '';
+            chartDiv.classList.remove('loading');
+            
+            const isDark = currentTheme === 'dark';
+            const priceTrace = {
+                x: data.timestamps,
+                y: data.prices,
+                type: 'scatter',
+                mode: 'lines',
+                name: 'Price',
+                line: { color: '#6366f1', width: 1.5 }  // Indigo color that works in both modes
+            };
+            
+            const shapes = [];
+            let currentPos = 0;
+            let startIdx = 0;
+            
+            for (let i = 0; i < data.positions.length; i++) {
+                if (data.positions[i] !== currentPos) {
+                    if (currentPos !== 0 && i > startIdx) {
+                        const color = currentPos === 1 
+                            ? (isDark ? 'rgba(16, 185, 129, 0.2)' : 'rgba(34, 197, 94, 0.25)')
+                            : (isDark ? 'rgba(239, 68, 68, 0.2)' : 'rgba(239, 68, 68, 0.25)');
+                        shapes.push({
+                            type: 'rect',
+                            xref: 'x',
+                            yref: 'paper',
+                            x0: data.timestamps[startIdx],
+                            x1: data.timestamps[i - 1],
+                            y0: 0,
+                            y1: 1,
+                            fillcolor: color,
+                            line: { 
+                                width: isDark ? 0 : 0.5,
+                                color: currentPos === 1 ? 'rgba(34, 197, 94, 0.5)' : 'rgba(239, 68, 68, 0.5)'
+                            }
+                        });
+                    }
+                    currentPos = data.positions[i];
+                    startIdx = i;
+                }
+            }
+            
+            if (currentPos !== 0) {
+                const color = currentPos === 1 
+                    ? (isDark ? 'rgba(16, 185, 129, 0.2)' : 'rgba(34, 197, 94, 0.25)')
+                    : (isDark ? 'rgba(239, 68, 68, 0.2)' : 'rgba(239, 68, 68, 0.25)');
+                shapes.push({
+                    type: 'rect',
+                    xref: 'x',
+                    yref: 'paper',
+                    x0: data.timestamps[startIdx],
+                    x1: data.timestamps[data.timestamps.length - 1],
+                    y0: 0,
+                    y1: 1,
+                    fillcolor: color,
+                    line: { 
+                        width: isDark ? 0 : 0.5,
+                        color: currentPos === 1 ? 'rgba(34, 197, 94, 0.5)' : 'rgba(239, 68, 68, 0.5)'
+                    }
+                });
+            }
+            
+            const layout = {
+                xaxis: {
+                    title: 'Date',
+                    type: 'date',
+                    rangeslider: { visible: true },
+                    gridcolor: isDark ? 'rgba(148, 163, 184, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                    zerolinecolor: isDark ? 'rgba(148, 163, 184, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                    titlefont: { color: isDark ? '#f1f5f9' : '#1e293b' },
+                    tickfont: { color: isDark ? '#94a3b8' : '#64748b' }
+                },
+                yaxis: {
+                    title: 'Price ($)',
+                    tickformat: ',.2f',
+                    gridcolor: isDark ? 'rgba(148, 163, 184, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                    zerolinecolor: isDark ? 'rgba(148, 163, 184, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                    titlefont: { color: isDark ? '#f1f5f9' : '#1e293b' },
+                    tickfont: { color: isDark ? '#94a3b8' : '#64748b' }
+                },
+                margin: { t: 30, b: 40 },
+                height: 400,
+                shapes: shapes,
+                annotations: [
+                    {
+                        x: 0.02,
+                        y: 0.98,
+                        xref: 'paper',
+                        yref: 'paper',
+                        text: '<span style="color: #10b981">■</span> Long Position | <span style="color: #ef4444">■</span> Short Position',
+                        showarrow: false,
+                        bgcolor: isDark ? 'rgba(15, 23, 42, 0.8)' : 'rgba(255, 255, 255, 0.9)',
+                        bordercolor: isDark ? 'rgba(148, 163, 184, 0.2)' : 'rgba(0, 0, 0, 0.1)',
+                        borderwidth: 1,
+                        borderpad: 4,
+                        font: { color: isDark ? '#f1f5f9' : '#1e293b' }
+                    }
+                ],
+                hovermode: 'x unified',
+                paper_bgcolor: 'transparent',
+                plot_bgcolor: 'transparent',
+                font: { color: isDark ? '#f1f5f9' : '#1e293b' },
+                autosize: false,
+                width: window.innerWidth - 40,
+            };
+            
+            // Apply saved zoom state if it exists
+            if (savedPriceZoomState) {
+                if (savedPriceZoomState.xaxis.range) {
+                    layout.xaxis.range = savedPriceZoomState.xaxis.range;
+                    layout.xaxis.autorange = false;
+                }
+                if (savedPriceZoomState.yaxis.range) {
+                    layout.yaxis.range = savedPriceZoomState.yaxis.range;
+                    layout.yaxis.autorange = false;
+                }
+            }
+            
+            const config = {
+                responsive: false,
+                displayModeBar: true,
+                toImageButtonOptions: {
+                    format: 'png',
+                    filename: 'price_position',
+                    height: 400,
+                    width: window.innerWidth - 40,
+                    scale: 1
+                }
+            };
+            
+            Plotly.newPlot('pricePositionChart', [priceTrace], layout, config);
+            
+            // Clear saved zoom state after applying it
+            savedPriceZoomState = null;
+        }
+
+        // Check sync status (same as index.html)
+        async function checkSyncStatus() {
+            try {
+                const response = await fetch('/api/sync/status/buckets');
+                
+                if (!response.ok) {
+                    console.error('Sync status API failed:', response.status);
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                const statusText = document.getElementById('syncStatusText');
+                const dataStatusText = document.getElementById('dataStatusText');
+                const bucketSummary = document.getElementById('bucketStatusSummary');
+                
+                if (!statusText || !dataStatusText || !bucketSummary) {
+                    return;
+                }
+                
+                if (data.thread_running) {
+                    if (data.sync_in_progress) {
+                        statusText.innerHTML = 'Sync: <span style="color: #22d3ee;">⟳ Syncing...</span> <span class="expand-icon">▼</span>';
+                        
+                        if (!syncInProgress) {
+                            syncInProgress = true;
+                            setupPolling();
+                        }
+                    } else {
+                        statusText.innerHTML = 'Sync: <span class="sync-status-ok"></span><span style="color: #10b981;">OK</span> <span class="expand-icon">▼</span>';
+                        
+                        if (syncInProgress) {
+                            syncInProgress = false;
+                            setupPolling();
+                            loadBuckets();
+                        }
+                        
+                        if (data.last_sync) {
+                            lastSyncTime = new Date(data.last_sync);
+                            const now = new Date().getTime();
+                            const minAgo = Math.floor((now - lastSyncTime.getTime()) / 60000);
+                            const currentHTML = statusText.innerHTML;
+                            const arrowIndex = currentHTML.indexOf('<span class="expand-icon">');
+                            if (arrowIndex !== -1) {
+                                const beforeArrow = currentHTML.substring(0, arrowIndex);
+                                const arrow = currentHTML.substring(arrowIndex);
+                                statusText.innerHTML = beforeArrow + ` <span style="color: var(--text-secondary);">(${minAgo}m ago)</span> ` + arrow;
+                            }
+                        }
+                    }
+                } else {
+                    statusText.innerHTML = 'Sync: <span style="color: #f59e0b;">○ Problem</span> <span class="expand-icon">▼</span>';
+                }
+                
+                if (data.summary) {
+                    const { total_symbols, total_fresh, percentage_fresh } = data.summary;
+                    
+                    if (percentage_fresh === 100) {
+                        dataStatusText.innerHTML = `Data: <span style="color: #10b981;">✓ All Fresh</span> (${total_symbols} symbols)`;
+                    } else if (percentage_fresh >= 80) {
+                        dataStatusText.innerHTML = `Data: <span style="color: #f59e0b;">⚠ ${total_fresh}/${total_symbols} Fresh</span> (${percentage_fresh}%)`;
+                    } else {
+                        dataStatusText.innerHTML = `Data: <span style="color: #ef4444;">❌ ${total_fresh}/${total_symbols} Fresh</span> (${percentage_fresh}%)`;
+                    }
+                }
+                
+                if (data.buckets) {
+                    let bucketHtml = '';
+                    
+                    for (const [bucketName, bucketInfo] of Object.entries(data.buckets)) {
+                        const { fresh_count, total_symbols, overall_status } = bucketInfo;
+                        
+                        let statusIcon = '';
+                        let statusClass = '';
+                        
+                        if (overall_status === 'healthy') {
+                            statusIcon = '✓';
+                            statusClass = 'style="color: #10b981;"';
+                        } else if (overall_status === 'warning') {
+                            statusIcon = '⚠';
+                            statusClass = 'style="color: #f59e0b;"';
+                        } else {
+                            statusIcon = '❌';
+                            statusClass = 'style="color: #ef4444;"';
+                        }
+                        
+                        bucketHtml += `<div>${bucketInfo.display_name}: <span ${statusClass}>${statusIcon} ${fresh_count}/${total_symbols}</span></div>`;
+                    }
+                    
+                    bucketSummary.innerHTML = bucketHtml || '<span style="color: var(--text-secondary);">No buckets found</span>';
+                }
+            } catch (error) {
+                console.error('Error checking sync status:', error);
+            }
+        }
+
+        // Setup polling
+        function setupPolling() {
+            if (updateInterval) {
+                clearInterval(updateInterval);
+            }
+            
+            updateInterval = setInterval(() => {
+                if (currentSymbol && currentBucket) {
+                    checkForUpdates();
+                }
+                checkSyncStatus();
+            }, currentPollInterval);
+        }
+
+        // Check for updates (simplified version)
+        async function checkForUpdates() {
+            if (!currentSymbol || !currentBucket) return;
+            
+            try {
+                const versionResponse = await fetch('/api/data/version');
+                if (versionResponse.ok) {
+                    const versionData = await versionResponse.json();
+                    if (versionData.version > currentDataVersion) {
+                        currentDataVersion = versionData.version;
+                        // Reload current symbol data
+                        selectSymbol(currentBucket, currentSymbol, `TS-${currentSymbol}`);
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking for updates:', error);
+            }
+        }
+
+        // Countdown timer
+        function startCountdownTimer() {
+            countdownInterval = setInterval(updateCountdown, 1000);
+        }
+
+        function updateCountdown() {
+            if (!lastSyncTime) return;
+            
+            const now = new Date();
+            const nextSync = new Date(lastSyncTime.getTime() + 5 * 60 * 1000);
+            const diff = nextSync - now;
+            
+            if (diff > 0) {
+                const minutes = Math.floor(diff / 60000);
+                const seconds = Math.floor((diff % 60000) / 1000);
+                document.getElementById('syncCountdown').textContent = 
+                    `Next sync in: ${minutes}m ${seconds}s`;
+            } else {
+                document.getElementById('syncCountdown').textContent = 'Syncing soon...';
+            }
+        }
+
+        // Initialize
+        async function init() {
+            // Display local timezone
+            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            document.getElementById('localTimezone').textContent = timezone;
+            
+            // Initialize theme
+            initTheme();
+            
+            // Create particles
+            createParticles();
+            
+            // Initialize sidebar
+            initSidebar();
+            
+            // Initialize sync status toggle
+            initSyncStatusToggle();
+            
+            await loadBuckets();
+            await parseAndLoadFromURL();
+            
+            // If we loaded from URL, update the symbol name now that bucketData is available
+            if (loadedFromURL && currentSymbol && currentBucket) {
+                const symbolName = findSymbolNameByTsId(currentSymbol, currentBucket);
+                if (symbolName) {
+                    updateSymbolDisplay(symbolName, currentBucket, currentSymbol);
+                }
+            }
+            
+            // Load first symbol if no URL was provided
+            if (!loadedFromURL && bucketData.length > 0 && bucketData[0].symbols && bucketData[0].symbols.length > 0) {
+                const firstBucket = bucketData[0];
+                const firstSymbol = bucketData[0].symbols[0];
+                selectSymbol(firstBucket.name, firstSymbol.ts_id, firstSymbol.symbol);
+            }
+            
+            checkSyncStatus();
+            
+            document.getElementById('btnNetOnly')?.classList.add('active');
+            
+            setupPolling();
+            startCountdownTimer();
+        }
+
+        // Theme initialization
+        function initTheme() {
+            // Load saved preferences
+            currentTheme = localStorage.getItem('theme') || 'dark';
+            currentAccent = localStorage.getItem('accent') || 'default';
+            
+            // Apply theme
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            
+            // Apply accent
+            if (currentAccent !== 'default') {
+                document.documentElement.setAttribute('data-accent', currentAccent);
+            }
+            
+            // Update mode buttons
+            updateModeButtons();
+            
+            // Theme toggle button
+            const themeToggleBtn = document.getElementById('themeToggleBtn');
+            const themeSwitcher = document.getElementById('themeSwitcher');
+            
+            if (themeToggleBtn) {
+                themeToggleBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    themeSwitcher.classList.toggle('expanded');
+                });
+            }
+            
+            // Close when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!themeSwitcher.contains(e.target)) {
+                    themeSwitcher.classList.remove('expanded');
+                }
+            });
+            
+            // Light/Dark mode buttons
+            const lightModeBtn = document.getElementById('lightModeBtn');
+            const darkModeBtn = document.getElementById('darkModeBtn');
+            
+            if (lightModeBtn && darkModeBtn) {
+                lightModeBtn.addEventListener('click', () => {
+                    currentTheme = 'light';
+                    document.documentElement.setAttribute('data-theme', 'light');
+                    localStorage.setItem('theme', 'light');
+                    updateModeButtons();
+                    updateChartTheme();
+                });
+                
+                darkModeBtn.addEventListener('click', () => {
+                    currentTheme = 'dark';
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    localStorage.setItem('theme', 'dark');
+                    updateModeButtons();
+                    updateChartTheme();
+                });
+            }
+            
+            // Handle accent selection
+            document.querySelectorAll('.color-option').forEach(option => {
+                // Set initial active state
+                if (option.dataset.accent === currentAccent) {
+                    option.classList.add('active');
+                }
+                
+                option.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    
+                    const newAccent = option.dataset.accent;
+                    currentAccent = newAccent;
+                    localStorage.setItem('accent', newAccent);
+                    
+                    // Update active state
+                    document.querySelectorAll('.color-option').forEach(opt => {
+                        opt.classList.remove('active');
+                    });
+                    option.classList.add('active');
+                    
+                    // Apply accent
+                    if (newAccent === 'default') {
+                        document.documentElement.removeAttribute('data-accent');
+                    } else {
+                        document.documentElement.setAttribute('data-accent', newAccent);
+                    }
+                });
+            });
+        }
+        
+        function updateModeButtons() {
+            const lightBtn = document.getElementById('lightModeBtn');
+            const darkBtn = document.getElementById('darkModeBtn');
+            
+            if (currentTheme === 'light') {
+                lightBtn?.classList.add('active');
+                darkBtn?.classList.remove('active');
+            } else {
+                darkBtn?.classList.add('active');
+                lightBtn?.classList.remove('active');
+            }
+        }
+
+        // Update chart theme
+        function updateChartTheme() {
+            const isDark = currentTheme === 'dark';
+            const layout = {
+                paper_bgcolor: 'transparent',
+                plot_bgcolor: 'transparent',
+                font: { color: isDark ? '#f1f5f9' : '#1e293b' },
+                xaxis: { 
+                    gridcolor: isDark ? 'rgba(148, 163, 184, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                    zerolinecolor: isDark ? 'rgba(148, 163, 184, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+                },
+                yaxis: { 
+                    gridcolor: isDark ? 'rgba(148, 163, 184, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                    zerolinecolor: isDark ? 'rgba(148, 163, 184, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+                }
+            };
+            
+            if (document.getElementById('cumulativeReturnChart').innerHTML && !document.getElementById('cumulativeReturnChart').classList.contains('loading')) {
+                Plotly.relayout('cumulativeReturnChart', layout);
+            }
+            if (document.getElementById('pricePositionChart').innerHTML && !document.getElementById('pricePositionChart').classList.contains('loading')) {
+                // Re-render price chart to update position overlay colors
+                if (window.lastPriceChartData) {
+                    plotPriceWithPositions(window.lastPriceChartData);
+                } else {
+                    Plotly.relayout('pricePositionChart', layout);
+                }
+            }
+        }
+
+        function initSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const mainContent = document.getElementById('mainContent');
+            
+            function openSidebar() {
+                sidebar.classList.add('show');
+                mainContent.classList.add('shifted');
+                sidebarToggle.classList.add('shifted');
+                localStorage.setItem('modernSidebarOpen', 'true');
+            }
+            
+            function closeSidebar() {
+                sidebar.classList.remove('show');
+                mainContent.classList.remove('shifted');
+                sidebarToggle.classList.remove('shifted');
+                localStorage.setItem('modernSidebarOpen', 'false');
+            }
+            
+            sidebarToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (sidebar.classList.contains('show')) {
+                    closeSidebar();
+                } else {
+                    openSidebar();
+                }
+            });
+            
+            document.addEventListener('click', (e) => {
+                if (sidebar.classList.contains('show') && 
+                    !sidebar.contains(e.target) && 
+                    !sidebarToggle.contains(e.target)) {
+                    closeSidebar();
+                }
+            });
+            
+            sidebar.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+            
+            if (localStorage.getItem('modernSidebarOpen') === 'true') {
+                openSidebar();
+            }
+            
+            const searchInput = document.getElementById('treeSearch');
+            searchInput.addEventListener('input', (e) => {
+                renderTree(e.target.value);
+            });
+        }
+
+        function initSyncStatusToggle() {
+            const syncContainer = document.getElementById('syncStatusContainer');
+            if (!syncContainer) return;
+            
+            syncContainer.addEventListener('click', function() {
+                this.classList.toggle('collapsed');
+            });
+        }
+
+
+        // Start on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            init();
+        });
+    </script>
+</body>
+</html>

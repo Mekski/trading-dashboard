@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Dashboard</title>
+    
+    <!-- Modern fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.0.0/fonts/remixicon.css" rel="stylesheet">
+    
+    <!-- Chart library -->
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+    
+    <!-- External CSS -->
+    <link rel="stylesheet" href="/static/css/modern-dashboard.css">
+</head>
+<body>
+    <!-- Background gradient -->
+    <div class="bg-gradient"></div>
+    
+    <!-- Grid overlay -->
+    <div class="grid-overlay"></div>
+    
+    <!-- Subtle gradient orbs -->
+    <div class="subtle-orb subtle-orb1"></div>
+    <div class="subtle-orb subtle-orb2"></div>
+    <div class="subtle-orb subtle-orb3"></div>
+    
+    <!-- Animated particles container -->
+    <div id="particlesContainer"></div>
+
+    <!-- Enhanced loading overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="loading-logo">
+                <i class="ri-line-chart-line"></i>
+            </div>
+            <div class="loading-text">Loading Dashboard</div>
+            <div class="loading-subtext">Fetching latest market data...</div>
+            <div class="loading-progress">
+                <div class="loading-progress-bar"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Theme switcher -->
+    <div class="theme-switcher" id="themeSwitcher">
+        <button class="theme-toggle-btn" id="themeToggleBtn">
+            <i class="ri-palette-line"></i>
+        </button>
+        <div class="theme-options">
+            <div class="theme-option-group">
+                <div class="theme-option-label">Theme Mode</div>
+                <div class="theme-mode-toggle">
+                    <button class="mode-btn" id="lightModeBtn">
+                        <i class="ri-sun-line"></i>
+                        Light
+                    </button>
+                    <button class="mode-btn active" id="darkModeBtn">
+                        <i class="ri-moon-line"></i>
+                        Dark
+                    </button>
+                </div>
+            </div>
+            <div class="theme-option-group">
+                <div class="theme-option-label">Accent Color</div>
+                <div class="theme-option-row" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem;">
+                    <div class="color-option" data-accent="default" style="background: linear-gradient(135deg, #6366f1, #22d3ee);" title="Indigo"></div>
+                    <div class="color-option" data-accent="purple" style="background: linear-gradient(135deg, #9333ea, #ec4899);" title="Purple"></div>
+                    <div class="color-option" data-accent="green" style="background: linear-gradient(135deg, #10b981, #14b8a6);" title="Green"></div>
+                    <div class="color-option" data-accent="orange" style="background: linear-gradient(135deg, #f97316, #f59e0b);" title="Orange"></div>
+                    <div class="color-option" data-accent="pink" style="background: linear-gradient(135deg, #ec4899, #f43f5e);" title="Pink"></div>
+                    <div class="color-option" data-accent="blue" style="background: linear-gradient(135deg, #3b82f6, #06b6d4);" title="Blue"></div>
+                    <div class="color-option" data-accent="red" style="background: linear-gradient(135deg, #ef4444, #f97316);" title="Red"></div>
+                    <div class="color-option" data-accent="teal" style="background: linear-gradient(135deg, #14b8a6, #06b6d4);" title="Teal"></div>
+                    <div class="color-option" data-accent="amber" style="background: linear-gradient(135deg, #f59e0b, #f97316);" title="Amber"></div>
+                    <div class="color-option" data-accent="indigo" style="background: linear-gradient(135deg, #4f46e5, #7c3aed);" title="Indigo"></div>
+                    <div class="color-option" data-accent="rose" style="background: linear-gradient(135deg, #f43f5e, #ec4899);" title="Rose"></div>
+                    <div class="color-option" data-accent="emerald" style="background: linear-gradient(135deg, #10b981, #06b6d4);" title="Emerald"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main container -->
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="ri-line-chart-line"></i>
+                </div>
+                <div class="logo-text">Algorithmic Trading Dashboard</div>
+            </div>
+            
+            <nav class="nav-pills">
+                <button class="nav-pill active" data-view="overview" id="overviewBtn">
+                    <i class="ri-dashboard-line"></i> Overview
+                </button>
+                <button class="nav-pill" data-view="performers" id="performersBtn">
+                    <i class="ri-trophy-line"></i> Top Performers
+                </button>
+                <button class="nav-pill" data-coin="all" id="allBtn">All</button>
+                <button class="nav-pill" data-coin="BTC" id="btcBtn">BTC</button>
+                <button class="nav-pill" data-coin="ETH" id="ethBtn">ETH</button>
+                <button class="nav-pill" data-coin="SOL" id="solBtn">SOL</button>
+                <button class="nav-pill" data-coin="LTC" id="ltcBtn">LTC</button>
+            </nav>
+        </header>
+
+        <!-- Stats Row -->
+        <div class="stats-row" id="statsRow">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="ri-pulse-line"></i>
+                    </div>
+                    <div>
+                        <div class="stat-label">Tests Fresh</div>
+                        <div class="stat-value" id="freshnessStat">-/-</div>
+                        <div class="stat-change positive" id="freshnessChange">
+                            <span id="freshnessPercent">-%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="ri-refresh-line"></i>
+                    </div>
+                    <div>
+                        <div class="stat-label">Sync Status</div>
+                        <div class="stat-value" id="syncStatus">-</div>
+                        <div class="stat-change" id="nextSync">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="ri-funds-line"></i>
+                    </div>
+                    <div>
+                        <div class="stat-label">Average Return</div>
+                        <div class="stat-value" id="avgReturn">-%</div>
+                        <div class="stat-change" id="returnRange">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="ri-exchange-line"></i>
+                    </div>
+                    <div>
+                        <div class="stat-label">Positions</div>
+                        <div class="stat-value" id="activePositions">-/-</div>
+                        <div class="stat-change" id="positionBreakdown">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="ri-trophy-line"></i>
+                    </div>
+                    <div>
+                        <div class="stat-label">Win/Loss</div>
+                        <div class="stat-value" id="winLossRatio">-/-</div>
+                        <div class="stat-change" id="performanceDetail">-</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart Container -->
+        <div class="chart-container" id="chartContainer">
+            <div class="chart-header">
+                <div class="chart-title">
+                    <div class="chart-title-icon">
+                        <i class="ri-stock-line"></i>
+                    </div>
+                    <span id="chartTitle">Portfolio Performance</span>
+                </div>
+                <div class="chart-controls">
+                    <div class="time-selector">
+                        <button class="time-btn" data-range="1D">1D</button>
+                        <button class="time-btn" data-range="1W">1W</button>
+                        <button class="time-btn" data-range="1M">1M</button>
+                        <button class="time-btn" data-range="3M">3M</button>
+                        <button class="time-btn active" data-range="ALL">All</button>
+                    </div>
+                    <button class="scale-toggle" id="scaleToggle" title="Toggle Linear/Log Scale">
+                        <span class="scale-label">Linear</span>
+                    </button>
+                    <button class="chart-toggle" id="chartToggle">
+                        <i class="ri-eye-line"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="portfolioChart" style="height: 400px;"></div>
+        </div>
+
+        <!-- Top Performers Grid (hidden by default) -->
+        <div class="performers-grid" id="performersGrid" style="display: none;">
+            <!-- Will be populated dynamically -->
+        </div>
+
+        <!-- Table Container -->
+        <div class="table-container" id="tableContainer">
+            <div class="table-header">
+                <div class="table-title" id="tableTitle">All Symbols</div>
+                <div class="table-controls">
+                    <div class="search-container">
+                        <i class="ri-search-line search-icon"></i>
+                        <input type="text" class="search-input" id="searchInput" 
+                               placeholder="Search symbols, pairs, positions...">
+                    </div>
+                    <button class="clear-filters-btn" id="clearFiltersBtn">
+                        <i class="ri-close-line"></i> Clear Filters
+                    </button>
+                </div>
+            </div>
+            
+            <div class="table-wrapper">
+                <table class="modern-table" id="dataTable">
+                    <thead>
+                        <tr>
+                            <th class="sortable" data-column="symbol">Symbol <i class="sort-icon">↕</i></th>
+                            <th class="sortable" data-column="bucket">Bucket <i class="sort-icon">↕</i></th>
+                            <th class="sortable" data-column="pair">Pair <i class="sort-icon">↕</i></th>
+                            <th class="sortable" data-column="freshness">Fresh <i class="sort-icon">↕</i></th>
+                            <th class="sortable" data-column="price">Price <i class="sort-icon">↕</i></th>
+                            <th class="sortable" data-column="position">Pos <i class="sort-icon">↕</i></th>
+                            <th class="sortable" data-column="return">Cumulative <i class="sort-icon">↕</i></th>
+                            <th class="sortable" data-column="24h">24h <i class="sort-icon">↕</i></th>
+                            <th class="sortable" data-column="max">Max <i class="sort-icon">↕</i></th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Will be populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <div class="fab" id="refreshBtn" title="Refresh Data">
+        <i class="ri-refresh-line"></i>
+    </div>
+
+    <!-- External JavaScript -->
+    <script src="/static/js/modern-dashboard.js"></script>
+</body>
+</html>

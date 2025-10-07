@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-accent="default">
+<head>
+    <script>
+        // Apply saved theme immediately to prevent flash
+        (function() {
+            const savedMode = localStorage.getItem('themeMode') || 'dark';
+            const savedAccent = localStorage.getItem('accentColor') || 'default';
+            document.documentElement.setAttribute('data-theme', savedMode);
+            document.documentElement.setAttribute('data-accent', savedAccent);
+        })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REB Log Analysis Dashboard</title>
+    
+    <!-- Modern fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.0.0/fonts/remixicon.css" rel="stylesheet">
+    
+    <!-- External CSS - SAME AS MODERN DASHBOARD -->
+    <link rel="stylesheet" href="/static/css/modern-dashboard.css">
+    
+    <style>
+        /* REB-specific styles only */
+        
+        /* Theme switcher active state */
+        .theme-switcher.active .theme-options {
+            display: block !important;
+        }
+        
+        /* Tree view container */
+        .tree-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .tree-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        
+        .tree-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .view-toggle {
+            display: flex;
+            gap: 0.5rem;
+            background: var(--table-bg);
+            padding: 0.25rem;
+            border-radius: 0.5rem;
+        }
+        
+        .view-btn {
+            padding: 0.5rem 1rem;
+            background: transparent;
+            border: none;
+            border-radius: 0.375rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+        }
+        
+        .view-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        /* Hourly reports (tree nodes) */
+        .hourly-report {
+            background: var(--table-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 0.75rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s;
+            overflow: hidden;
+        }
+        
+        .hourly-report:hover {
+            border-color: var(--primary);
+            background: var(--table-hover);
+        }
+        
+        .hourly-header {
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+        }
+        
+        .hourly-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .expand-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s;
+            color: var(--text-secondary);
+        }
+        
+        .hourly-report.expanded .expand-icon {
+            transform: rotate(90deg);
+        }
+        
+        .hour-label {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .hour-date {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        
+        .hourly-stats {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        
+        .hour-stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .hour-stat-label {
+            font-size: 0.625rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .hour-stat-value {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .risk-indicator {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .risk-critical {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        
+        .risk-high {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+        
+        .risk-medium {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        
+        .risk-low {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        
+        /* Sub-analyses (5-min reports) */
+        .sub-analyses {
+            padding: 0 1.5rem 1rem;
+            display: none;
+        }
+        
+        .hourly-report.expanded .sub-analyses {
+            display: block;
+        }
+        
+        .sub-analysis {
+            background: var(--bg-secondary);
+            border: 1px solid var(--glass-border);
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            margin-top: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .sub-analysis:hover {
+            background: var(--table-hover);
+            border-color: var(--primary);
+        }
+        
+        /* Modal for detailed analysis */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.show {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--glass-border);
+            border-radius: 1rem;
+            max-width: 900px;
+            max-height: 80vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.375rem;
+            transition: all 0.2s;
+        }
+        
+        .modal-close:hover {
+            background: var(--table-hover);
+            color: var(--text-primary);
+        }
+        
+        .modal-body {
+            padding: 1.5rem;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            color: var(--text-primary);
+        }
+        
+        /* Loading state */
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--glass-border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Responsive overrides for 4-column stat layout */
+        @media (max-width: 1200px) {
+            .container .stats-row {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .container .stats-row {
+                grid-template-columns: 1fr !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background gradient -->
+    <div class="bg-gradient"></div>
+    
+    <!-- Grid overlay -->
+    <div class="grid-overlay"></div>
+    
+    <!-- Subtle gradient orbs -->
+    <div class="subtle-orb subtle-orb1"></div>
+    <div class="subtle-orb subtle-orb2"></div>
+    <div class="subtle-orb subtle-orb3"></div>
+    
+    <!-- Animated particles container -->
+    <div id="particlesContainer"></div>
+
+    <!-- Theme switcher -->
+    <div class="theme-switcher" id="themeSwitcher">
+        <button class="theme-toggle-btn" id="themeToggleBtn">
+            <i class="ri-palette-line"></i>
+        </button>
+        <div class="theme-options">
+            <div class="theme-option-group">
+                <div class="theme-option-label">Theme Mode</div>
+                <div class="theme-mode-toggle">
+                    <button class="mode-btn" id="lightModeBtn">
+                        <i class="ri-sun-line"></i>
+                        Light
+                    </button>
+                    <button class="mode-btn active" id="darkModeBtn">
+                        <i class="ri-moon-line"></i>
+                        Dark
+                    </button>
+                </div>
+            </div>
+            <div class="theme-option-group">
+                <div class="theme-option-label">Accent Color</div>
+                <div class="theme-option-row" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem;">
+                    <div class="color-option" data-accent="default" style="background: linear-gradient(135deg, #6366f1, #22d3ee);" title="Indigo"></div>
+                    <div class="color-option" data-accent="purple" style="background: linear-gradient(135deg, #9333ea, #ec4899);" title="Purple"></div>
+                    <div class="color-option" data-accent="green" style="background: linear-gradient(135deg, #10b981, #14b8a6);" title="Green"></div>
+                    <div class="color-option" data-accent="orange" style="background: linear-gradient(135deg, #f97316, #f59e0b);" title="Orange"></div>
+                    <div class="color-option" data-accent="pink" style="background: linear-gradient(135deg, #ec4899, #f43f5e);" title="Pink"></div>
+                    <div class="color-option" data-accent="blue" style="background: linear-gradient(135deg, #3b82f6, #06b6d4);" title="Blue"></div>
+                    <div class="color-option" data-accent="red" style="background: linear-gradient(135deg, #ef4444, #f97316);" title="Red"></div>
+                    <div class="color-option" data-accent="teal" style="background: linear-gradient(135deg, #14b8a6, #06b6d4);" title="Teal"></div>
+                    <div class="color-option" data-accent="amber" style="background: linear-gradient(135deg, #f59e0b, #f97316);" title="Amber"></div>
+                    <div class="color-option" data-accent="indigo" style="background: linear-gradient(135deg, #4f46e5, #7c3aed);" title="Indigo"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main container -->
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="ri-bug-line"></i>
+                </div>
+                <div class="logo-text">REB Log Analysis</div>
+            </div>
+            
+            <nav class="nav-pills">
+                <a href="/" class="nav-pill">
+                    <i class="ri-arrow-left-line"></i> Back to Dashboard
+                </a>
+                <button class="nav-pill active" id="treeViewBtn" onclick="setViewMode('tree')">
+                    <i class="ri-node-tree"></i> Tree View
+                </button>
+                <button class="nav-pill" id="listViewBtn" onclick="setViewMode('list')">
+                    <i class="ri-list-check"></i> List View
+                </button>
+                <button class="nav-pill" onclick="location.reload()">
+                    <i class="ri-refresh-line"></i> Refresh
+                </button>
+            </nav>
+        </header>
+
+        <!-- Stats Row -->
+        <div class="stats-row" style="max-width: 1200px; margin: 0 auto 1.5rem; grid-template-columns: repeat(4, 1fr);">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="ri-pulse-line"></i>
+                    </div>
+                    <div>
+                        <div class="stat-label">Analyzer Status</div>
+                        <div class="stat-value" id="analyzerStatus">--</div>
+                        <div class="stat-change" id="analyzerChange">
+                            <span id="analyzerSubtitle">Checking status...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="ri-time-line"></i>
+                    </div>
+                    <div>
+                        <div class="stat-label">Hourly Reports</div>
+                        <div class="stat-value" id="hourlyCount">--</div>
+                        <div class="stat-change">
+                            <span id="hourlySubtitle">Aggregated summaries</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="ri-file-list-3-line"></i>
+                    </div>
+                    <div>
+                        <div class="stat-label">5-Min Analyses</div>
+                        <div class="stat-value" id="fiveMinCount">--</div>
+                        <div class="stat-change">
+                            <span id="fiveMinSubtitle">Detailed log analyses</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="ri-refresh-line"></i>
+                    </div>
+                    <div>
+                        <div class="stat-label">Last Update</div>
+                        <div class="stat-value" id="lastUpdate">--</div>
+                        <div class="stat-change">
+                            <span id="updateSubtitle">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tree view of reports -->
+        <div class="tree-container">
+            <div class="tree-header">
+                <div class="tree-title">Analysis Hierarchy</div>
+                <div class="view-toggle">
+                    <button class="view-btn active" onclick="setViewMode('tree')">Tree View</button>
+                    <button class="view-btn" onclick="setViewMode('list')">List View</button>
+                </div>
+            </div>
+            
+            <div id="treeContent">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>Loading analyses...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal for analysis details -->
+    <div class="modal" id="analysisModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Analysis Details</h3>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+        </div>
+    </div>
+    
+    <!-- Import only necessary functions from modern dashboard -->
+    <script>
+        // Initialize particles if needed
+        function initParticles() {
+            const container = document.getElementById('particlesContainer');
+            if (!container) return;
+            
+            for (let i = 0; i < 5; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = 20 + Math.random() * 10 + 's';
+                container.appendChild(particle);
+            }
+        }
+        
+        // Theme management
+        document.addEventListener('DOMContentLoaded', () => {
+            const themeToggleBtn = document.getElementById('themeToggleBtn');
+            const themeSwitcher = document.getElementById('themeSwitcher');
+            const lightModeBtn = document.getElementById('lightModeBtn');
+            const darkModeBtn = document.getElementById('darkModeBtn');
+            
+            // Toggle theme panel
+            if (themeToggleBtn) {
+                themeToggleBtn.addEventListener('click', () => {
+                    themeSwitcher.classList.toggle('active');
+                });
+            }
+            
+            // Theme mode buttons
+            if (lightModeBtn) {
+                lightModeBtn.addEventListener('click', () => {
+                    document.documentElement.setAttribute('data-theme', 'light');
+                    localStorage.setItem('themeMode', 'light');
+                    lightModeBtn.classList.add('active');
+                    darkModeBtn.classList.remove('active');
+                });
+            }
+            
+            if (darkModeBtn) {
+                darkModeBtn.addEventListener('click', () => {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    localStorage.setItem('themeMode', 'dark');
+                    darkModeBtn.classList.add('active');
+                    lightModeBtn.classList.remove('active');
+                });
+            }
+            
+            // Accent color options
+            document.querySelectorAll('.color-option').forEach(option => {
+                option.addEventListener('click', () => {
+                    const accent = option.dataset.accent;
+                    document.documentElement.setAttribute('data-accent', accent);
+                    localStorage.setItem('accentColor', accent);
+                    
+                    // Update active state
+                    document.querySelectorAll('.color-option').forEach(opt => {
+                        opt.classList.remove('active');
+                    });
+                    option.classList.add('active');
+                });
+            });
+            
+            // Set initial active states
+            const currentTheme = localStorage.getItem('themeMode') || 'dark';
+            const currentAccent = localStorage.getItem('accentColor') || 'default';
+            
+            if (currentTheme === 'light') {
+                lightModeBtn?.classList.add('active');
+                darkModeBtn?.classList.remove('active');
+            } else {
+                darkModeBtn?.classList.add('active');
+                lightModeBtn?.classList.remove('active');
+            }
+            
+            document.querySelector(`.color-option[data-accent="${currentAccent}"]`)?.classList.add('active');
+            
+            // Close theme panel on outside click
+            document.addEventListener('click', (e) => {
+                if (!themeSwitcher?.contains(e.target) && !themeToggleBtn?.contains(e.target)) {
+                    themeSwitcher?.classList.remove('active');
+                }
+            });
+        });
+    </script>
+    
+    <script>
+        let hourlyData = [];
+        let fiveMinData = [];
+        let viewMode = 'tree';
+        
+        // View mode management
+        function setViewMode(mode) {
+            viewMode = mode;
+            document.getElementById('treeViewBtn').classList.toggle('active', mode === 'tree');
+            document.getElementById('listViewBtn').classList.toggle('active', mode === 'list');
+            document.querySelectorAll('.view-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent.toLowerCase().includes(mode));
+            });
+            renderReports();
+        }
+        
+        // Toggle hourly report expansion
+        function toggleHourly(id) {
+            const report = document.getElementById(id);
+            report.classList.toggle('expanded');
+        }
+        
+        // Show analysis modal
+        function showAnalysis(timestamp, type) {
+            const modal = document.getElementById('analysisModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+            
+            if (type === 'hourly') {
+                const analysis = hourlyData.find(h => h.timestamp === timestamp);
+                if (analysis) {
+                    modalTitle.textContent = `Hourly Analysis - ${new Date(timestamp).toLocaleString()}`;
+                    modalBody.textContent = analysis.analysis || 'No analysis available';
+                }
+            } else {
+                const analysis = fiveMinData.find(f => f.timestamp === timestamp);
+                if (analysis) {
+                    modalTitle.textContent = `5-Minute Analysis - ${new Date(timestamp).toLocaleString()}`;
+                    modalBody.textContent = analysis.analysis || 'No analysis available';
+                }
+            }
+            
+            modal.classList.add('show');
+        }
+        
+        function closeModal() {
+            const modal = document.getElementById('analysisModal');
+            modal.classList.remove('show');
+        }
+        
+        // Format relative time
+        function formatRelativeTime(timestamp) {
+            // Always parse timestamp as UTC by appending Z if not present
+            const timeStr = timestamp + (timestamp.includes('Z') || timestamp.includes('+') || timestamp.includes('-') ? '' : 'Z');
+            const time = new Date(timeStr);
+            const now = new Date();
+            
+            const diff = now - time;
+            
+            // Ensure we don't show negative values
+            if (diff < 0) {
+                return 'just now';
+            }
+            
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(diff / 3600000);
+            const days = Math.floor(diff / 86400000);
+            
+            if (minutes < 1) return 'just now';
+            if (minutes < 60) return `${minutes}m ago`;
+            if (hours < 24) return `${hours}h ago`;
+            return `${days}d ago`;
+        }
+        
+        // Render reports based on view mode
+        function renderReports() {
+            const container = document.getElementById('treeContent');
+            
+            if (hourlyData.length === 0 && fiveMinData.length === 0) {
+                container.innerHTML = '<div class="loading"><p>No analyses available yet</p></div>';
+                return;
+            }
+            
+            let html = '';
+            
+            if (viewMode === 'tree') {
+                // Tree view: Hourly reports with nested 5-min analyses
+                hourlyData.forEach((hourly, idx) => {
+                    // Parse as UTC and convert to local time
+                    const hourDate = new Date(hourly.timestamp + (hourly.timestamp.includes('Z') ? '' : 'Z'));
+                    const hourStr = hourDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                    const dateStr = hourDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    
+                    // Find associated 5-min analyses for this hour
+                    const hourStart = new Date(hourDate);
+                    hourStart.setMinutes(0, 0, 0);
+                    const hourEnd = new Date(hourStart);
+                    hourEnd.setHours(hourEnd.getHours() + 1);
+                    
+                    const subAnalyses = fiveMinData.filter(f => {
+                        const fTime = new Date(f.timestamp);
+                        return fTime >= hourStart && fTime < hourEnd;
+                    });
+                    
+                    const riskClass = `risk-${hourly.risk_level?.toLowerCase() || 'medium'}`;
+                    
+                    html += `
+                        <div class="hourly-report" id="hourly-${idx}">
+                            <div class="hourly-header" onclick="toggleHourly('hourly-${idx}')">
+                                <div class="hourly-info">
+                                    <span class="expand-icon">
+                                        <i class="ri-arrow-right-s-line"></i>
+                                    </span>
+                                    <div>
+                                        <div class="hour-label">${hourStr}</div>
+                                        <div class="hour-date">${dateStr}</div>
+                                    </div>
+                                </div>
+                                <div class="hourly-stats">
+                                    <div class="hour-stat">
+                                        <div class="hour-stat-label">Analyses</div>
+                                        <div class="hour-stat-value">${subAnalyses.length}</div>
+                                    </div>
+                                    <div class="risk-indicator ${riskClass}">
+                                        ${hourly.risk_level || 'MEDIUM'}
+                                    </div>
+                                    <button class="view-btn" onclick="event.stopPropagation(); showAnalysis('${hourly.timestamp}', 'hourly')">
+                                        View Details
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="sub-analyses">
+                                ${subAnalyses.map(sub => {
+                                    // Parse as UTC and convert to local time
+                                    const subTime = new Date(sub.timestamp + (sub.timestamp.includes('Z') ? '' : 'Z'));
+                                    const subRiskClass = `risk-${sub.risk_level?.toLowerCase() || 'medium'}`;
+                                    return `
+                                        <div class="sub-analysis" onclick="showAnalysis('${sub.timestamp}', '5min')">
+                                            <div>
+                                                <strong>${subTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</strong>
+                                                <span style="color: var(--text-secondary); margin-left: 0.5rem;">
+                                                    ${sub.entries_analyzed || 0} entries
+                                                </span>
+                                            </div>
+                                            <div class="risk-indicator ${subRiskClass}">
+                                                ${sub.risk_level || 'MEDIUM'}
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                // List view: All analyses in chronological order
+                const allAnalyses = [
+                    ...hourlyData.map(h => ({...h, type: 'hourly'})),
+                    ...fiveMinData.map(f => ({...f, type: '5min'}))
+                ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                
+                allAnalyses.forEach(analysis => {
+                    // Parse as UTC and convert to local time
+                    const time = new Date(analysis.timestamp + (analysis.timestamp.includes('Z') ? '' : 'Z'));
+                    const riskClass = `risk-${analysis.risk_level?.toLowerCase() || 'medium'}`;
+                    const icon = analysis.type === 'hourly' ? 'ri-time-line' : 'ri-file-list-3-line';
+                    
+                    html += `
+                        <div class="hourly-report" onclick="showAnalysis('${analysis.timestamp}', '${analysis.type}')">
+                            <div class="hourly-header">
+                                <div class="hourly-info">
+                                    <i class="${icon}" style="color: var(--text-secondary); margin-right: 0.5rem;"></i>
+                                    <div>
+                                        <div class="hour-label">
+                                            ${time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                                        </div>
+                                        <div class="hour-date">
+                                            ${time.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="hourly-stats">
+                                    <div class="hour-stat">
+                                        <div class="hour-stat-label">Type</div>
+                                        <div class="hour-stat-value">${analysis.type === 'hourly' ? 'Hourly' : '5-Min'}</div>
+                                    </div>
+                                    <div class="risk-indicator ${riskClass}">
+                                        ${analysis.risk_level || 'MEDIUM'}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            
+            container.innerHTML = html || '<div class="loading"><p>No analyses available</p></div>';
+        }
+        
+        // Load analysis data
+        async function loadAnalyses() {
+            try {
+                const response = await fetch('/api/reb/analyses');
+                const data = await response.json();
+                
+                hourlyData = data.hourly || [];
+                fiveMinData = data.five_minute || [];
+                
+                // Update stats
+                document.getElementById('hourlyCount').textContent = hourlyData.length;
+                document.getElementById('fiveMinCount').textContent = fiveMinData.length;
+                
+                // Update last update time and analyzer status
+                if (fiveMinData.length > 0) {
+                    const lastAnalysis = fiveMinData[0];
+                    // Parse as UTC and convert to local time for display
+                    const lastTime = new Date(lastAnalysis.timestamp + (lastAnalysis.timestamp.includes('Z') ? '' : 'Z'));
+                    const now = new Date();
+                    const hoursSinceLastAnalysis = (now - lastTime) / (1000 * 60 * 60);
+                    
+                    document.getElementById('lastUpdate').textContent = formatRelativeTime(lastAnalysis.timestamp);
+                    document.getElementById('updateSubtitle').textContent = lastTime.toLocaleString();
+                    
+                    // Update analyzer status based on last analysis time
+                    const statusEl = document.getElementById('analyzerStatus');
+                    const changeEl = document.getElementById('analyzerChange');
+                    const subtitleEl = document.getElementById('analyzerSubtitle');
+                    
+                    if (hoursSinceLastAnalysis < 0.5) {
+                        // Less than 30 minutes - Active
+                        statusEl.textContent = 'Active';
+                        statusEl.style.color = 'var(--success)';
+                        changeEl.className = 'stat-change positive';
+                        subtitleEl.textContent = 'Processing logs every 5 minutes';
+                    } else if (hoursSinceLastAnalysis < 2) {
+                        // Less than 2 hours - Idle
+                        statusEl.textContent = 'Idle';
+                        statusEl.style.color = 'var(--warning)';
+                        changeEl.className = 'stat-change';
+                        subtitleEl.textContent = `Last analysis ${Math.round(hoursSinceLastAnalysis * 60)} minutes ago`;
+                    } else {
+                        // More than 2 hours - Stopped
+                        statusEl.textContent = 'Stopped';
+                        statusEl.style.color = 'var(--danger)';
+                        changeEl.className = 'stat-change negative';
+                        subtitleEl.textContent = `Last analysis ${Math.round(hoursSinceLastAnalysis)} hours ago`;
+                    }
+                } else {
+                    // No analyses found
+                    document.getElementById('analyzerStatus').textContent = 'No Data';
+                    document.getElementById('analyzerSubtitle').textContent = 'No analyses found';
+                }
+                
+                renderReports();
+            } catch (error) {
+                console.error('Failed to load analyses:', error);
+                document.getElementById('treeContent').innerHTML = 
+                    '<div class="loading"><p>Failed to load analyses</p></div>';
+            }
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize particles (from modern-dashboard.js)
+            if (typeof initParticles === 'function') {
+                initParticles();
+            }
+            
+            // Load data
+            loadAnalyses();
+            
+            // Auto-refresh every 30 seconds
+            setInterval(loadAnalyses, 30000);
+        });
+        
+        // Handle ESC key for modal
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

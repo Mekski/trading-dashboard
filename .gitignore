@@ -1,0 +1,131 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+okx/.env
+**/.env
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Project specific
+gcs_sync.log
+.sync_state.json
+
+# Keep config and demo data files for deployment
+!config.json
+!config.example.json
+!vercel.json
+!buckets/**/*.csv
+!buckets/**/*.json
+!okx/.env.example
+
+# OKX integration
+okx/data/
+okx/okx_sync.log
+okx/*.log
+*.jsonl
+
+# Credentials
+credentials/
+*.key
+*.pem
+service-account-key.json
+
+# Temporary files
+*.tmp
+*.bak
+*.cache
+temp/
+tmp/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+.directory
+
+# Old log files
+*.log.old
+*.log.[0-9]
+
+# Web app logs
+web_app.log*
+
+# REB Log System
+reb_log_deltas/
+reb_analysis/
+.reb_log_sync_state.json
+reb_log_sync.log*
+test_claude_sdk.py

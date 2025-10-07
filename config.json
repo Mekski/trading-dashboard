@@ -1,0 +1,15 @@
+{
+  "buckets": [
+    "strategy_alpha",
+    "strategy_beta",
+    "strategy_gamma"
+  ],
+  "local_root": "./buckets",
+  "transaction_fee_percent": 0.05,
+  "ts_id_mapping": {
+    "1": "BTC",
+    "2": "ETH",
+    "3": "LTC",
+    "4": "SOL"
+  }
+}

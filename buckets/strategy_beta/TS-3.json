@@ -1,0 +1,35 @@
+{
+  "Report": "Algorithmic Trading Strategy",
+  "org": "Portfolio Demo",
+  "models": [
+    {
+      "name": "TradingModel",
+      "args": {
+        "specific_parameter_combination_dicts": [
+          {
+            "best_take_profit": 0.024,
+            "take_profit_trailing": 0.004,
+            "best_stop_loss": 0.011
+          }
+        ],
+        "best_take_profit": 0.024,
+        "take_profit_trailing": 0.004,
+        "best_stop_loss": 0.011,
+        "window_size": 1440,
+        "n_rows": 2,
+        "BB_win": 200,
+        "trim": true,
+        "hedge_symbol": "LTC-USD-SWAP",
+        "option_symbol": null,
+        "test_id": 0
+      },
+      "Report": "Algorithmic Trading Strategy"
+    }
+  ],
+  "test_nickname": "LTC_USD_STRATEGY_BETA",
+  "symbols": {
+    "LTC-USD-SWAP": "LTC-USD-SWAP"
+  },
+  "full_model_name": "LTC_USD_STRATEGY_BETA",
+  "test_session_id": 1
+}
