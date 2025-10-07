@@ -2,7 +2,7 @@
 
 A modern algorithmic trading dashboard showcasing portfolio performance visualization with realistic simulated market data.
 
-## 🚀 Features
+## Features
 
 - **Modern Glassmorphic UI**: Beautiful dark-themed interface with frosted glass effects and animated backgrounds
 - **Real-time Performance Tracking**: Monitor 12 trading strategies across 4 cryptocurrency pairs (BTC, ETH, SOL, LTC)
@@ -11,46 +11,18 @@ A modern algorithmic trading dashboard showcasing portfolio performance visualiz
 - **Responsive Design**: Seamless experience across desktop and mobile devices
 - **Theme Customization**: Light/dark modes with multiple accent colors
 
-## 💻 Tech Stack
+## Tech Stack
 
 - **Backend**: Flask (Python 3.7+)
 - **Frontend**: Vanilla JavaScript, HTML5, CSS3 with modern glassmorphic design
 - **Charts**: Plotly.js for interactive financial visualizations
 - **Data Processing**: Pandas & NumPy for complex financial calculations
 
-## 🌐 Live Demo
+## Live Demo
 
 Visit the deployed version on Vercel: [Coming Soon]
 
-## 📦 Deployment
-
-### Deploy to Vercel (Recommended)
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/trading-dashboard)
-
-### Manual Deployment
-
-1. **Clone the repository**
-```bash
-git clone https://github.com/yourusername/trading-dashboard.git
-cd trading-dashboard
-```
-
-2. **Deploy with Vercel CLI**
-```bash
-npm i -g vercel
-vercel
-```
-
-3. **Follow the prompts** to link your Vercel account
-
-### Alternative: Deploy via GitHub
-
-1. Push code to GitHub repository
-2. Import project in [Vercel Dashboard](https://vercel.com/dashboard)
-3. Vercel auto-detects Flask configuration and deploys
-
-## 🔧 Local Development
+## Local Development
 
 ```bash
 # Install dependencies
@@ -62,7 +34,7 @@ python web_app.py
 # Open browser to http://localhost:5001
 ```
 
-## 📊 Dashboard Features
+## Dashboard Features
 
 ### Overview Tab
 - Aggregate portfolio performance across all strategies
@@ -83,14 +55,14 @@ python web_app.py
 - Minutely and hourly chart resolutions
 - Synchronized zoom across multiple charts
 
-## 🎨 UI Customization
+## UI Customization
 
 The dashboard includes a floating theme switcher with:
 - **Light/Dark Mode Toggle**
 - **12 Accent Colors**: Indigo, Purple, Green, Orange, Pink, Blue, Red, Teal, Amber, Rose, Emerald
 - **Persistent Settings**: Theme preferences saved across sessions
 
-## 📈 Data
+## Data
 
 This demo uses realistic simulated trading data that showcases:
 - Natural market volatility with sharp fluctuations
@@ -98,7 +70,7 @@ This demo uses realistic simulated trading data that showcases:
 - Transaction cost modeling (0.05% fees)
 - Diverse performance profiles (±90% range with rare outliers)
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 Flask Backend → API Endpoints → JSON Data
@@ -107,19 +79,3 @@ Flask Backend → API Endpoints → JSON Data
        ↓              ↓              ↓
    HTML/CSS      JavaScript      Plotly Charts
 ```
-
-## 📝 License
-
-MIT License - Feel free to use this project in your portfolio
-
-## 🤝 Contributing
-
-This is a portfolio demonstration project. Feel free to fork and customize for your own use!
-
-## 📧 Contact
-
-For questions or opportunities, please reach out through my portfolio website.
-
----
-
-Built with ❤️ for demonstrating full-stack development and financial data visualization capabilities.
