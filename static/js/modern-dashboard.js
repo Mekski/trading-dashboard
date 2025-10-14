@@ -44,8 +44,12 @@ function formatPosition(position) {
 // Format freshness
 function formatFreshness(freshness, minutesAgo) {
     const freshClass = freshness.replace('_', '-');
-    const timeStr = minutesAgo < 60 ? `${minutesAgo}m` : 
-                  `${Math.floor(minutesAgo / 60)}h ${minutesAgo % 60}m`;
+
+    // Check if this is demo data (indicated by -1)
+    const timeStr = minutesAgo === -1 ? 'Demo Data' :
+                    minutesAgo < 60 ? `${minutesAgo}m` :
+                    `${Math.floor(minutesAgo / 60)}h ${minutesAgo % 60}m`;
+
     return `
         <span class="freshness">
             <span class="freshness-dot ${freshClass}"></span>

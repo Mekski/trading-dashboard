@@ -700,12 +700,10 @@ def discover_symbols_in_bucket(bucket_path):
                 file_path = os.path.join(bucket_path, filename)
                 file_stat = os.stat(file_path)
                 last_modified = datetime.fromtimestamp(file_stat.st_mtime)
-                now = datetime.now()
-                minutes_ago = int((now - last_modified).total_seconds() / 60)
-                hours_ago = minutes_ago / 60
-                
-                # Portfolio demo: always show as fresh
+
+                # Portfolio demo: show as demo data
                 freshness = 'fresh'
+                minutes_ago = -1  # Special value to indicate demo data
                 
                 # Extract pair information from hedge_symbol
                 pair = 'USD'  # default
